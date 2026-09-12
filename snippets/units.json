@@ -1,0 +1,145 @@
+{
+  "Service unit": {
+    "prefix": "service",
+    "body": [
+      "[Unit]",
+      "Description=${1:Short description}",
+      "After=${2:network.target}",
+      "",
+      "[Service]",
+      "Type=${3|simple,exec,forking,oneshot,notify,dbus,idle|}",
+      "ExecStart=${4:/usr/bin/example}",
+      "Restart=${5|no,on-success,on-failure,on-abnormal,on-watchdog,on-abort,always|}",
+      "",
+      "[Install]",
+      "WantedBy=${6:multi-user.target}",
+      "$0"
+    ],
+    "description": "Systemd service unit"
+  },
+  "Oneshot service unit": {
+    "prefix": "oneshot",
+    "body": [
+      "[Unit]",
+      "Description=${1:Short description}",
+      "",
+      "[Service]",
+      "Type=oneshot",
+      "ExecStart=${2:/usr/bin/example}",
+      "RemainAfterExit=yes",
+      "",
+      "[Install]",
+      "WantedBy=${3:multi-user.target}",
+      "$0"
+    ],
+    "description": "Systemd oneshot service unit"
+  },
+  "Timer unit": {
+    "prefix": "timer",
+    "body": [
+      "[Unit]",
+      "Description=${1:Run ${2:service} periodically}",
+      "",
+      "[Timer]",
+      "OnCalendar=${3:*-*-* *:00:00}",
+      "Persistent=${4|yes,no|}",
+      "",
+      "[Install]",
+      "WantedBy=${5:timers.target}",
+      "$0"
+    ],
+    "description": "Systemd timer unit"
+  },
+  "Socket unit": {
+    "prefix": "socket",
+    "body": [
+      "[Unit]",
+      "Description=${1:Socket description}",
+      "",
+      "[Socket]",
+      "ListenStream=${2:12345}",
+      "Accept=${3|no,yes|}",
+      "",
+      "[Install]",
+      "WantedBy=${4:sockets.target}",
+      "$0"
+    ],
+    "description": "Systemd socket unit"
+  },
+  "Mount unit": {
+    "prefix": "mount",
+    "body": [
+      "[Unit]",
+      "Description=${1:Mount description}",
+      "",
+      "[Mount]",
+      "What=${2:/dev/sdb1}",
+      "Where=${3:/mnt/data}",
+      "Type=${4:auto}",
+      "Options=${5:defaults}",
+      "",
+      "[Install]",
+      "WantedBy=${6:multi-user.target}",
+      "$0"
+    ],
+    "description": "Systemd mount unit"
+  },
+  "Automount unit": {
+    "prefix": "automount",
+    "body": [
+      "[Unit]",
+      "Description=${1:Automount description}",
+      "",
+      "[Automount]",
+      "Where=${2:/mnt/data}",
+      "",
+      "[Install]",
+      "WantedBy=${3:multi-user.target}",
+      "$0"
+    ],
+    "description": "Systemd automount unit"
+  },
+  "Path unit": {
+    "prefix": "path",
+    "body": [
+      "[Unit]",
+      "Description=${1:Path description}",
+      "",
+      "[Path]",
+      "PathExists=${2:/etc/example.conf}",
+      "Unit=${3:example.service}",
+      "",
+      "[Install]",
+      "WantedBy=${4:multi-user.target}",
+      "$0"
+    ],
+    "description": "Systemd path unit"
+  },
+  "Slice unit": {
+    "prefix": "slice",
+    "body": [
+      "[Unit]",
+      "Description=${1:Slice description}",
+      "",
+      "[Slice]",
+      "MemoryMax=${2:1G}",
+      "CPUQuota=${3:50%}",
+      "$0"
+    ],
+    "description": "Systemd slice unit"
+  },
+  "Target unit": {
+    "prefix": "target",
+    "body": [
+      "[Unit]",
+      "Description=${1:Target description}",
+      "Requires=${2:}",
+      "After=${3:}",
+      "",
+      "[Install]",
+      "WantedBy=${4:multi-user.target}",
+      "$0"
+    ],
+    "description": "Systemd target unit"
+  }
+}

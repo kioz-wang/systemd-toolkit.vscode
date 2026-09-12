@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <!-- systemd logomark (official geometry from docs/assets/systemd-logo.svg):
+       green circle + play triangle, #30d475. Adapted (wordmark removed,
+       re-scaled and centered) — see THIRD_PARTY_NOTICES.md (CC BY-SA 4.0). -->
+  <g transform="translate(-20 38) scale(2)">
+    <circle cx="30" cy="13" r="9" fill="#30d475"/>
+    <path d="M45 13 L63 3 L63 23 Z" fill="#30d475"/>
+  </g>
+</svg>

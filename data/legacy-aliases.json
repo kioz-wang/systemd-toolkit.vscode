@@ -1,0 +1,14 @@
+{
+  "description": "Deprecated/compatibility directive aliases that systemd's parser still accepts but that are no longer documented in the man pages (hence absent from the generated data). Each alias points at the canonical directive so hover/link can resolve. Version-independent: these aliases have been stable across all supported releases.",
+  "unit": [
+    { "section": "Unit", "name": "StartLimitInterval", "canonical": "StartLimitIntervalSec", "canonicalSection": "Unit" },
+    { "section": "Service", "name": "StartLimitInterval", "canonical": "StartLimitIntervalSec", "canonicalSection": "Unit" },
+    { "section": "Service", "name": "StartLimitBurst", "canonical": "StartLimitBurst", "canonicalSection": "Unit" },
+    { "section": "Service", "name": "StartLimitAction", "canonical": "StartLimitAction", "canonicalSection": "Unit" },
+    { "section": "Service", "name": "FailureAction", "canonical": "FailureAction", "canonicalSection": "Unit" },
+    { "section": "Service", "name": "RebootArgument", "canonical": "RebootArgument", "canonicalSection": "Unit" },
+    { "section": "Unit", "name": "BindTo", "canonical": "BindsTo", "canonicalSection": "Unit" },
+    { "section": "Unit", "name": "PropagateReloadTo", "canonical": "PropagatesReloadTo", "canonicalSection": "Unit" },
+    { "section": "Unit", "name": "PropagateReloadFrom", "canonical": "ReloadPropagatedFrom", "canonicalSection": "Unit" }
+  ]
+}

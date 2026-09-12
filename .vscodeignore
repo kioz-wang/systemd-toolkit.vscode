@@ -1,0 +1,13 @@
+.vscode/**
+.vscode-test/**
+src/**
+scripts/**
+node_modules/.bin/**
+node_modules/**/package.json.bak
+.gitignore
+tsconfig.json
+**/*.map
+README.zh-CN.md
+DEVELOPMENT.md
+DEVELOPMENT.zh-CN.md
+resources/systemd-mark.svg

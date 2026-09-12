@@ -1,0 +1,43 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "systemd unit file",
+  "scopeName": "source.systemd",
+  "patterns": [
+    { "include": "#comment" },
+    { "include": "#section" },
+    { "include": "#assignment" }
+  ],
+  "repository": {
+    "comment": {
+      "match": "^\\s*[#;].*$",
+      "name": "comment.line.systemd"
+    },
+    "section": {
+      "match": "^\\s*(\\[)([^\\]]+)(\\])",
+      "captures": {
+        "1": { "name": "punctuation.definition.section.begin.systemd" },
+        "2": { "name": "entity.name.section.systemd" },
+        "3": { "name": "punctuation.definition.section.end.systemd" }
+      }
+    },
+    "assignment": {
+      "match": "^\\s*([A-Za-z][A-Za-z0-9_]*)\\s*(=)(.*)$",
+      "captures": {
+        "1": { "name": "variable.parameter.systemd" },
+        "2": { "name": "punctuation.separator.key-value.systemd" },
+        "3": {
+          "name": "string.unquoted.systemd",
+          "patterns": [ { "include": "#value" } ]
+        }
+      }
+    },
+    "value": {
+      "patterns": [
+        { "match": "%[A-Za-z%]", "name": "constant.language.specifier.systemd" },
+        { "match": "\\b(yes|no|true|false|on|off|infinity)\\b", "name": "constant.language.boolean.systemd" },
+        { "match": "\"[^\"]*\"", "name": "string.quoted.double.systemd" },
+        { "match": "'[^']*'", "name": "string.quoted.single.systemd" }
+      ]
+    }
+  }
+}

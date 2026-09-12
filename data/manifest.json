@@ -1,0 +1,24 @@
+{
+  "versions": [
+    {
+      "version": "258",
+      "file": "directives-v258.json",
+      "generatedFrom": "systemd-258.10"
+    },
+    {
+      "version": "259",
+      "file": "directives-v259.json",
+      "generatedFrom": "systemd-259.9"
+    },
+    {
+      "version": "260",
+      "file": "directives-v260.json",
+      "generatedFrom": "systemd-260.5"
+    },
+    {
+      "version": "261",
+      "file": "directives-v261.json",
+      "generatedFrom": "systemd-261.3"
+    }
+  ]
+}

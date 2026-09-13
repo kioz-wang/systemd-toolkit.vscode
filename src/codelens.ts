@@ -68,8 +68,9 @@ export class SystemdCodeLensProvider implements vscode.CodeLensProvider {
         const lens = (title: string, command: string, tooltip: string, icon?: string): vscode.CodeLens =>
             new vscode.CodeLens(range, {
                 title: icon ? `$(${icon}) ${title}` : title,
+                // An empty command id renders the lens as non-clickable text.
                 command,
-                arguments: [unit, docScope],
+                arguments: command ? [unit, docScope] : undefined,
                 tooltip,
             });
 
@@ -85,14 +86,15 @@ export class SystemdCodeLensProvider implements vscode.CodeLensProvider {
 
         const lenses: vscode.CodeLens[] = [];
 
-        // Status (always shown for deployed units).
+        // Status is shown as a plain, non-clickable label (no systemctl status
+        // invocation) — it is only an indicator of the unit's current state.
         const statusLabel = st.activeState === 'unknown'
             ? 'Unknown'
             : cap(st.activeState) + (st.subState ? ` (${st.subState})` : '');
         const statusIcon = st.activeState === 'active'
             ? 'circle-filled'
             : st.activeState === 'failed' ? 'error' : 'circle-outline';
-        lenses.push(lens(statusLabel, 'systemd.status', `Show status of ${unit}`, statusIcon));
+        lenses.push(lens(statusLabel, '', `Status of ${unit}: ${statusLabel}`, statusIcon));
 
         // Start/stop toggle + restart, by active state (skip when masked).
         if (st.loadState !== 'masked') {

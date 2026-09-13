@@ -1,8 +1,7 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
-import { buildCommand, BuiltCommand, systemctlArgs, UnitScope } from './remote';
+import { shellCommand, runInTerminal, systemctlArgs, UnitScope } from './remote';
 import { showLogs } from './logs';
-import { command } from './logger';
 
 const UNIT_EXT = /\.(service|socket|timer|path|mount|swap|automount|target|slice|scope)$/;
 
@@ -22,28 +21,16 @@ export async function resolveUnit(): Promise<string | undefined> {
     });
 }
 
-/** Run a built command in an integrated terminal, recording it in the log channel. */
-export async function run(built: BuiltCommand): Promise<void> {
-    command(built.display);
-    const terminal = vscode.window.createTerminal({
-        name: 'systemd',
-        shellPath: built.cmd,
-        shellArgs: built.args,
-    });
-    terminal.show();
-}
-
 /** Run a systemctl action against a specific unit (or without one). */
-export async function runSystemctl(
+export function runSystemctl(
     action: string,
     unit: string | undefined,
     privileged: boolean,
     scopeOverride?: UnitScope
-): Promise<void> {
+): void {
     const bin = vscode.workspace.getConfiguration('systemd').get<string>('systemctlPath', 'systemctl');
     const args = unit ? [action, unit] : [action];
-    const built = buildCommand(bin, systemctlArgs(args, scopeOverride), privileged, scopeOverride);
-    await run(built);
+    runInTerminal(shellCommand(bin, systemctlArgs(args, scopeOverride), privileged, scopeOverride));
 }
 
 /** Show live, continuously-refreshing logs for a unit in a read-only editor tab. */

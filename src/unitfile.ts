@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as os from 'os';
-import { systemctl, runOnTarget, buildCommand, onHostChanged, onScopeChanged, scope, homeDir, UnitScope } from './remote';
+import { systemctl, runOnTarget, buildCommand, onHostChanged, onScopeChanged, scope, homeDir, writeTempFile, runInTerminal, UnitScope } from './remote';
 import { exec } from './process';
 
 const UNIT_EXT = /\.(service|socket|timer|path|mount|swap|automount|target|slice|scope)$/;
@@ -481,6 +481,30 @@ export async function deployCurrentFile(): Promise<void> {
     }
 
     const content = doc.getText();
+
+    // sudo/pkexec need interactive authentication, which cannot be done
+    // silently via exec(stdin) (sudo needs a TTY; pkexec needs a polkit agent
+    // session). Stage the file to a temp path (no elevation), then run the
+    // install + daemon-reload in an integrated terminal and clean the temp
+    // file up afterwards. `none` (no elevation) and user scope keep the quiet
+    // exec path below.
+    const auth = (vscode.workspace.getConfiguration('systemd').get<string>('authMethod', 'sudo') || 'sudo').trim();
+    if (docScope === 'system' && (auth === 'sudo' || auth === 'pkexec')) {
+        const tmpPath = await writeTempFile(unit, content);
+        if (!tmpPath) {
+            void vscode.window.showErrorMessage(
+                `systemd: failed to stage ${unit} to a temporary file on the target.`
+            );
+            return;
+        }
+        const shell = `${auth} install -m 644 '${tmpPath}' '${targetPath}' && ${auth} systemctl daemon-reload; rm -f '${tmpPath}'`;
+        runInTerminal(shell);
+        void vscode.window.showInformationMessage(
+            `systemd: deploying ${unit} to ${targetPath} in the terminal — authenticate there.`
+        );
+        return;
+    }
+
     const writeBuilt = buildCommand('tee', [targetPath], true, docScope);
     const write = await exec(writeBuilt.cmd, writeBuilt.args, content);
     if (write.code !== 0) {

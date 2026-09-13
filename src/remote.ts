@@ -110,12 +110,12 @@ export interface BuiltCommand {
  * user's systemd instance, so they must never be elevated (sudo would switch
  * to root's user instance); elevation is therefore suppressed for user scope.
  */
-export function buildCommand(base: string, args: string[], elevate = false, scopeOverride?: UnitScope): BuiltCommand {
+export function buildCommand(base: string, args: string[], elevate = false, scopeOverride?: UnitScope, hostOverride?: string): BuiltCommand {
     let argv = [base, ...args];
     if (elevate) {
         argv = [...elevationPrefix(scopeOverride), ...argv];
     }
-    const h = host();
+    const h = hostOverride !== undefined ? hostOverride : host();
     if (h) {
         argv = [sshBin(), ...sshControlOptions(h), h, ...argv];
     }

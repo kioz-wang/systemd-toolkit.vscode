@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import * as cp from 'child_process';
-import { buildCommand, journalctlArgs, scope, UnitScope } from './remote';
+import { buildCommand, journalctlArgs, host, scope, UnitScope } from './remote';
 import { command, error } from './logger';
 
 /** Virtual scheme for the read-only, continuously-refreshing log view. */
@@ -14,6 +14,8 @@ const REFRESH_MS = 500;
 
 interface LogSession {
     unit: string;
+    host: string;
+    scope: UnitScope;
     proc: cp.ChildProcess;
     /** Flushed output currently shown in the document. */
     text: string;
@@ -22,16 +24,27 @@ interface LogSession {
     timer?: NodeJS.Timeout;
 }
 
-function logUri(unit: string): vscode.Uri {
-    return vscode.Uri.parse(`${LOG_SCHEME}:/${unit}`);
+/** Host + scope the log view was requested with (both encoded in the URI). */
+interface LogTarget {
+    unit: string;
+    host: string;
+    scope: UnitScope;
 }
 
-function unitFromLogUri(uri: vscode.Uri): string {
-    return uri.path.replace(/^\//, '');
+function logUri(target: LogTarget): vscode.Uri {
+    return vscode.Uri.parse(`${LOG_SCHEME}:/${target.unit}`).with({
+        query: `host=${encodeURIComponent(target.host)}&scope=${target.scope}`,
+    });
 }
 
-/** The scope each log view was requested with (set by showLogs, read by start). */
-const logScopes = new Map<string, UnitScope>();
+function parseLogUri(uri: vscode.Uri): LogTarget {
+    const qp = new URLSearchParams(uri.query);
+    return {
+        unit: uri.path.replace(/^\//, ''),
+        host: qp.get('host') ?? '',
+        scope: qp.get('scope') === 'user' ? 'user' : 'system',
+    };
+}
 
 class LogContentProvider implements vscode.TextDocumentContentProvider {
     private _onDidChange = new vscode.EventEmitter<vscode.Uri>();
@@ -39,11 +52,11 @@ class LogContentProvider implements vscode.TextDocumentContentProvider {
     private sessions = new Map<string, LogSession>();
 
     provideTextDocumentContent(uri: vscode.Uri): string {
-        const unit = unitFromLogUri(uri);
-        let session = this.sessions.get(unit);
+        const key = uri.toString();
+        let session = this.sessions.get(key);
         if (!session) {
-            session = this.spawn(unit, uri);
-            this.sessions.set(unit, session);
+            session = this.spawn(uri);
+            this.sessions.set(key, session);
         }
         return this.render(session);
     }
@@ -52,25 +65,27 @@ class LogContentProvider implements vscode.TextDocumentContentProvider {
         // When journalctl has produced nothing yet (e.g. the unit has no logs),
         // show a waiting hint instead of leaving the view empty/opening forever.
         const body = session.text.length > 0 ? session.text : '# Waiting for log output…\n';
-        return `# Live logs: ${session.unit}  (journalctl -u ${session.unit} --follow)\n${body}`;
+        const target = session.host ? `${session.host}:` : 'local:';
+        return `# Live logs: ${target}${session.scope} ${session.unit}  (journalctl -u ${session.unit} --follow)\n${body}`;
     }
 
-    private spawn(unit: string, uri: vscode.Uri): LogSession {
+    private spawn(uri: vscode.Uri): LogSession {
+        const { unit, host: h, scope: s } = parseLogUri(uri);
         const bin = vscode.workspace
             .getConfiguration('systemd')
             .get<string>('journalctlPath', 'journalctl');
         // Show the last 300 lines, then follow new entries (also over ssh),
-        // honouring the scope the log was requested with.
-        const s = logScopes.get(unit) ?? scope();
+        // honouring the host + scope the log was requested with.
         const built = buildCommand(
             bin,
             journalctlArgs(['-u', unit, '--follow', '--no-pager', '-n', '300'], s),
             false,
-            s
+            s,
+            h
         );
         const proc = cp.spawn(built.cmd, built.args, { shell: false });
         command(built.display);
-        const session: LogSession = { unit, proc, text: '', pending: '' };
+        const session: LogSession = { unit, host: h, scope: s, proc, text: '', pending: '' };
         proc.stdout.on('data', (d: Buffer) => this.onData(session, uri, d.toString()));
         proc.stderr.on('data', (d: Buffer) => this.onData(session, uri, d.toString()));
         proc.on('error', (e) => {
@@ -106,13 +121,13 @@ class LogContentProvider implements vscode.TextDocumentContentProvider {
         this._onDidChange.fire(uri);
     }
 
-    /** Stop and forget the streaming session for a unit (e.g. its tab closed). */
-    stop(unit: string): void {
-        const session = this.sessions.get(unit);
+    /** Stop and forget the streaming session for a document (e.g. its tab closed). */
+    stop(key: string): void {
+        const session = this.sessions.get(key);
         if (!session) {
             return;
         }
-        this.sessions.delete(unit);
+        this.sessions.delete(key);
         if (session.timer) {
             clearTimeout(session.timer);
         }
@@ -136,7 +151,7 @@ export function registerLogs(context: vscode.ExtensionContext): void {
         vscode.workspace.registerTextDocumentContentProvider(LOG_SCHEME, provider),
         vscode.workspace.onDidCloseTextDocument((doc) => {
             if (doc.uri.scheme === LOG_SCHEME) {
-                provider.stop(unitFromLogUri(doc.uri));
+                provider.stop(doc.uri.toString());
             }
         }),
         { dispose: () => provider.stopAll() },
@@ -145,8 +160,8 @@ export function registerLogs(context: vscode.ExtensionContext): void {
 
 /** Open (or reveal) the continuously-refreshing log document for a unit. */
 export async function showLogs(unit: string, scopeOverride?: UnitScope): Promise<void> {
-    logScopes.set(unit, scopeOverride ?? scope());
-    const doc = await vscode.workspace.openTextDocument(logUri(unit));
+    const target: LogTarget = { unit, host: host(), scope: scopeOverride ?? scope() };
+    const doc = await vscode.workspace.openTextDocument(logUri(target));
     await vscode.window.showTextDocument(doc, {
         preview: false,
         viewColumn: vscode.ViewColumn.Beside,

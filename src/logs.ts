@@ -32,7 +32,9 @@ interface LogTarget {
 }
 
 function logUri(target: LogTarget): vscode.Uri {
-    return vscode.Uri.parse(`${LOG_SCHEME}:/${target.unit}`).with({
+    // The `.log` suffix makes VS Code treat the document as a log file (the
+    // built-in `log` language), so entries get timestamp/level highlighting.
+    return vscode.Uri.parse(`${LOG_SCHEME}:/${target.unit}.log`).with({
         query: `host=${encodeURIComponent(target.host)}&scope=${target.scope}`,
     });
 }
@@ -40,7 +42,7 @@ function logUri(target: LogTarget): vscode.Uri {
 function parseLogUri(uri: vscode.Uri): LogTarget {
     const qp = new URLSearchParams(uri.query);
     return {
-        unit: uri.path.replace(/^\//, ''),
+        unit: uri.path.replace(/^\//, '').replace(/\.log$/, ''),
         host: qp.get('host') ?? '',
         scope: qp.get('scope') === 'user' ? 'user' : 'system',
     };
@@ -161,10 +163,7 @@ export function registerLogs(context: vscode.ExtensionContext): void {
 /** Open (or reveal) the continuously-refreshing log document for a unit. */
 export async function showLogs(unit: string, scopeOverride?: UnitScope): Promise<void> {
     const target: LogTarget = { unit, host: host(), scope: scopeOverride ?? scope() };
-    let doc = await vscode.workspace.openTextDocument(logUri(target));
-    if (doc.languageId !== 'log') {
-        doc = await vscode.languages.setTextDocumentLanguage(doc, 'log');
-    }
+    const doc = await vscode.workspace.openTextDocument(logUri(target));
     await vscode.window.showTextDocument(doc, {
         preview: false,
         viewColumn: vscode.ViewColumn.Beside,

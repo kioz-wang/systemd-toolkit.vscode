@@ -71,6 +71,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         await applyDirectiveVersion();
         codeLens.refresh();
         refreshStatus();
+        tree.refreshAll();
     };
 
     void apply();
@@ -102,9 +103,14 @@ async function applyDirectiveVersion(): Promise<void> {
     }
 
     if (decision.status === 'fallback') {
-        void vscode.window.showWarningMessage(
-            `systemd: could not detect the systemd version on the current host; using v${decision.version} data.`
-        );
+        // On platforms without a native systemd (Windows, macOS, …) this is
+        // expected, not an error — the Target view shows a hint instead. On
+        // Linux keep the warning so a broken/unreachable target is visible.
+        if (process.platform === 'linux') {
+            void vscode.window.showWarningMessage(
+                `systemd: could not detect the systemd version on the current host; using v${decision.version} data.`
+            );
+        }
     }
 
     if (!setActiveVersion(decision.version!)) {

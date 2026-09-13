@@ -11,6 +11,27 @@ export interface VersionDecision {
     detected?: string;
 }
 
+/** Whether systemd is reachable on the current target. 'unknown' until first detection. */
+export type SystemdAvailability = 'unknown' | 'available' | 'unavailable';
+
+let availability: SystemdAvailability = 'unknown';
+let detectedSystemd: string | undefined;
+
+/** The last detection result: can the target run `systemctl --version`? */
+export function systemdAvailability(): SystemdAvailability {
+    return availability;
+}
+
+/** True once detection succeeded (systemd is reachable on the target). */
+export function isSystemdAvailable(): boolean {
+    return availability === 'available';
+}
+
+/** The actual systemd version detected on the target, or undefined. */
+export function detectedSystemdVersion(): string | undefined {
+    return detectedSystemd;
+}
+
 /**
  * Detect the systemd version on the target by parsing `systemctl --version`.
  * Returns the release number (e.g. "262") or undefined when unavailable.
@@ -66,5 +87,7 @@ export async function chooseVersion(): Promise<VersionDecision> {
     }
 
     const detected = await detectSystemdVersion();
+    detectedSystemd = detected;
+    availability = detected !== undefined ? 'available' : 'unavailable';
     return decideVersion(override, detected, latestVersion());
 }

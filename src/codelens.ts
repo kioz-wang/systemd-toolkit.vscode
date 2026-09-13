@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { systemctl, UnitScope } from './remote';
 import { unitForDocument, isSnapshotDocument, documentScope } from './unitfile';
+import { isSystemdAvailable } from './version';
 
 interface UnitState {
     loadState: string;
@@ -51,6 +52,11 @@ export class SystemdCodeLensProvider implements vscode.CodeLensProvider {
         document: vscode.TextDocument,
         _token: vscode.CancellationToken
     ): Promise<vscode.CodeLens[]> {
+        // On targets without systemd (e.g. Windows) there is nothing to query;
+        // disable CodeLens entirely in that case.
+        if (!isSystemdAvailable()) {
+            return [];
+        }
         const unit = unitForDocument(document);
         if (!unit) {
             return [];

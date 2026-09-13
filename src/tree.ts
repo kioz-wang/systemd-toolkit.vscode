@@ -5,6 +5,7 @@ import * as path from 'path';
 import { systemctl, host, setSessionHost, scope, setSessionScope } from './remote';
 import { runSystemctl, runLogs } from './commands';
 import { newUnitFile } from './unitfile';
+import { systemdAvailability } from './version';
 
 /** A clickable item showing the current host (click to switch). */
 class HostItem extends vscode.TreeItem {
@@ -30,6 +31,20 @@ class ScopeItem extends vscode.TreeItem {
     }
 }
 
+/** A hint shown when the local machine has no systemd (e.g. Windows). */
+class SystemdHintItem extends vscode.TreeItem {
+    constructor() {
+        super('systemd not detected', vscode.TreeItemCollapsibleState.None);
+        this.description = 'language features only';
+        this.contextValue = 'hint';
+        this.iconPath = new vscode.ThemeIcon('warning', new vscode.ThemeColor('charts.yellow'));
+        this.tooltip =
+            'systemd was not found on this machine (Windows or a non-systemd Linux). ' +
+            'Editing, completion and hover still work, but the panel, CodeLens and ' +
+            'management commands are disabled.';
+    }
+}
+
 /** A separate "Target" section (like Explorer's Outline/Timeline) listing host + scope. */
 export class TargetProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
     private _onDidChangeTreeData = new vscode.EventEmitter<void>();
@@ -44,7 +59,12 @@ export class TargetProvider implements vscode.TreeDataProvider<vscode.TreeItem> 
     }
 
     getChildren(): vscode.TreeItem[] {
-        return [new HostItem(host()), new ScopeItem(scope())];
+        const items: vscode.TreeItem[] = [];
+        if (host() === '' && systemdAvailability() === 'unavailable') {
+            items.push(new SystemdHintItem());
+        }
+        items.push(new HostItem(host()), new ScopeItem(scope()));
+        return items;
     }
 }
 

@@ -518,28 +518,6 @@
           "group": "systemd@5"
         }
       ],
-      "editor/title": [
-        {
-          "command": "systemd.restart",
-          "when": "resourceLangId == systemd && resourceFilename =~ /\\.(service|socket|timer|path|mount|swap|automount|target|slice|scope)$/",
-          "group": "systemd@1"
-        },
-        {
-          "command": "systemd.status",
-          "when": "resourceLangId == systemd && resourceFilename =~ /\\.(service|socket|timer|path|mount|swap|automount|target|slice|scope)$/",
-          "group": "systemd@2"
-        },
-        {
-          "command": "systemd.logs",
-          "when": "resourceLangId == systemd && resourceFilename =~ /\\.(service|socket|timer|path|mount|swap|automount|target|slice|scope)$/",
-          "group": "systemd@3"
-        },
-        {
-          "command": "systemd.deploy",
-          "when": "resourceLangId == systemd && resourceFilename =~ /\\.(service|socket|timer|path|mount|swap|automount|target|slice|scope)$/",
-          "group": "systemd@4"
-        }
-      ],
       "commandPalette": [
         { "command": "systemd.units.status", "when": "false" },
         { "command": "systemd.units.start", "when": "false" },

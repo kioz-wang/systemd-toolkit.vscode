@@ -66,7 +66,7 @@ class LogContentProvider implements vscode.TextDocumentContentProvider {
         // show a waiting hint instead of leaving the view empty/opening forever.
         const body = session.text.length > 0 ? session.text : '# Waiting for log output…\n';
         const target = session.host ? `${session.host}:` : 'local:';
-        return `# Live logs: ${target}${session.scope} ${session.unit}  (journalctl -u ${session.unit} --follow)\n${body}`;
+        return `# Live logs: ${target}${session.scope} ${session.unit}\n${body}`;
     }
 
     private spawn(uri: vscode.Uri): LogSession {
@@ -161,7 +161,10 @@ export function registerLogs(context: vscode.ExtensionContext): void {
 /** Open (or reveal) the continuously-refreshing log document for a unit. */
 export async function showLogs(unit: string, scopeOverride?: UnitScope): Promise<void> {
     const target: LogTarget = { unit, host: host(), scope: scopeOverride ?? scope() };
-    const doc = await vscode.workspace.openTextDocument(logUri(target));
+    let doc = await vscode.workspace.openTextDocument(logUri(target));
+    if (doc.languageId !== 'log') {
+        doc = await vscode.languages.setTextDocumentLanguage(doc, 'log');
+    }
     await vscode.window.showTextDocument(doc, {
         preview: false,
         viewColumn: vscode.ViewColumn.Beside,

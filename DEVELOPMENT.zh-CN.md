@@ -219,7 +219,7 @@ resolve resource"）。
 - **子进程**：用 `spawn`/`exec`（`process.ts`），避免 shell 拼接；日志命令在
   `--follow` 流式。
 - **授权**：`start/stop/restart/enable/disable/daemon-reload` 需要 root，会加
-  `systemd.authMethod`（`sudo`/`pkexec`）前缀；因命令都在集成终端中运行（提供
+  `systemd-toolkit.authMethod`（`sudo`/`pkexec`）前缀；因命令都在集成终端中运行（提供
   TTY），交互认证可用。`status`/`logs` 无需提权。
 - **远程**：`src/remote.ts` 的 `buildCommand(base, args, elevate, scope)` 统一
   构造——先加提权前缀、再在最外层包 `ssh <host>`。ssh 带 ControlMaster 选项
@@ -231,7 +231,7 @@ resolve resource"）。
 
 ### 5.5 作用域（system/user）与 documentScope
 
-`systemd.scope`（`system`|`user`）决定管理哪个 systemd 实例。`remote.ts` 的
+`systemd-toolkit.scope`（`system`|`user`）决定管理哪个 systemd 实例。`remote.ts` 的
 `systemctlArgs`/`journalctlArgs` 在 user 作用域统一加 `--user`（`--version` 除外），
 且 `buildCommand` 在 user 作用域**永不提权**（sudo 会切到 root 的用户实例）。
 

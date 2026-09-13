@@ -72,7 +72,7 @@ class LogContentProvider implements vscode.TextDocumentContentProvider {
     private spawn(uri: vscode.Uri): LogSession {
         const { unit, host: h, scope: s } = parseLogUri(uri);
         const bin = vscode.workspace
-            .getConfiguration('systemd')
+            .getConfiguration('systemd-toolkit')
             .get<string>('journalctlPath', 'journalctl');
         // Show the last 300 lines, then follow new entries (also over ssh),
         // honouring the host + scope the log was requested with.

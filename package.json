@@ -102,7 +102,7 @@
       "activitybar": [
         {
           "id": "systemd",
-          "title": "systemd",
+          "title": "systemd Toolkit",
           "icon": "resources/systemd.svg"
         }
       ]
@@ -131,9 +131,9 @@
       ]
     },
     "configuration": {
-      "title": "systemd",
+      "title": "systemd Toolkit",
       "properties": {
-        "systemd.docSource": {
+        "systemd-toolkit.docSource": {
           "type": "string",
           "enum": [
             "online",
@@ -142,22 +142,22 @@
           "default": "online",
           "description": "Where directive help is resolved from. 'online' opens the HTML man pages on freedesktop.org; 'man' opens local man pages in a terminal."
         },
-        "systemd.onlineDocBase": {
+        "systemd-toolkit.onlineDocBase": {
           "type": "string",
           "default": "https://www.freedesktop.org/software/systemd/man/latest/",
-          "description": "Base URL used when systemd.docSource is 'online'."
+          "description": "Base URL used when systemd-toolkit.docSource is 'online'."
         },
-        "systemd.systemctlPath": {
+        "systemd-toolkit.systemctlPath": {
           "type": "string",
           "default": "systemctl",
           "description": "Path to the systemctl binary."
         },
-        "systemd.journalctlPath": {
+        "systemd-toolkit.journalctlPath": {
           "type": "string",
           "default": "journalctl",
           "description": "Path to the journalctl binary."
         },
-        "systemd.authMethod": {
+        "systemd-toolkit.authMethod": {
           "type": "string",
           "enum": [
             "sudo",
@@ -172,12 +172,12 @@
           "default": "sudo",
           "description": "How to elevate privileges for management commands (start/stop/restart/reload/enable/disable/daemon-reload)."
         },
-        "systemd.host": {
+        "systemd-toolkit.host": {
           "type": "string",
           "default": "",
           "description": "SSH host (alias from ~/.ssh/config) to operate on. Empty means the local machine. Commands are run via `ssh <host> systemctl ...` when set."
         },
-        "systemd.scope": {
+        "systemd-toolkit.scope": {
           "type": "string",
           "enum": [
             "system",
@@ -186,10 +186,10 @@
           "default": "system",
           "description": "Which systemd instance to manage: \"system\" (system units, default) or \"user\" (user units, via `systemctl --user`). User units deploy to ~/.config/systemd/user/ and never require elevation."
         },
-        "systemd.sshPath": {
+        "systemd-toolkit.sshPath": {
           "type": "string",
           "default": "ssh",
-          "description": "Path to the ssh binary used when systemd.host is set."
+          "description": "Path to the ssh binary used when systemd-toolkit.host is set."
         }
       }
     },

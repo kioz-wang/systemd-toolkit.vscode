@@ -488,7 +488,7 @@ export async function deployCurrentFile(): Promise<void> {
     // install + daemon-reload in an integrated terminal and clean the temp
     // file up afterwards. `none` (no elevation) and user scope keep the quiet
     // exec path below.
-    const auth = (vscode.workspace.getConfiguration('systemd').get<string>('authMethod', 'sudo') || 'sudo').trim();
+    const auth = (vscode.workspace.getConfiguration('systemd-toolkit').get<string>('authMethod', 'sudo') || 'sudo').trim();
     if (docScope === 'system' && (auth === 'sudo' || auth === 'pkexec')) {
         const tmpPath = await writeTempFile(unit, content);
         if (!tmpPath) {

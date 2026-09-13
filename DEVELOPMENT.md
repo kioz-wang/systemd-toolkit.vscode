@@ -243,7 +243,7 @@ direct dependencies so Ctrl+Click opens instantly.
 - **Subprocesses**: `spawn`/`exec` (`process.ts`), no shell string concat; log
   commands stream with `--follow`.
 - **Auth**: `start/stop/restart/enable/disable/daemon-reload` need root. They are
-  prefixed with `systemd.authMethod` (`sudo`/`pkexec`); because commands run in
+  prefixed with `systemd-toolkit.authMethod` (`sudo`/`pkexec`); because commands run in
   an integrated terminal (which provides a TTY), interactive auth works.
   `status`/`logs` don't elevate.
 - **Remote**: `src/remote.ts`'s `buildCommand(base, args, elevate, scope)`
@@ -257,7 +257,7 @@ direct dependencies so Ctrl+Click opens instantly.
 
 ### 5.5 Scope (system/user) & documentScope
 
-`systemd.scope` (`system`|`user`) decides which systemd instance to manage.
+`systemd-toolkit.scope` (`system`|`user`) decides which systemd instance to manage.
 `remote.ts`'s `systemctlArgs`/`journalctlArgs` prepend `--user` in user scope
 (except `--version`), and `buildCommand` **never elevates** in user scope (sudo
 would switch to root's user instance).

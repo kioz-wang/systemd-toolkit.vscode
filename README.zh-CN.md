@@ -100,9 +100,9 @@ Deploy **不会** start 或 enable 该 unit——那是独立的步骤（`Start`
 
 ### 远程（SSH）与作用域（scope）
 
-- `systemd.host` — 要操作的 SSH 别名（来自 `~/.ssh/config`）；留空 = 本机。远程
+- `systemd-toolkit.host` — 要操作的 SSH 别名（来自 `~/.ssh/config`）；留空 = 本机。远程
   命令复用一条多路复用的 SSH 连接。
-- `systemd.scope` — `system`（默认）或 `user`（`systemctl --user`）。user 作用域
+- `systemd-toolkit.scope` — `system`（默认）或 `user`（`systemctl --user`）。user 作用域
   部署到 `~/.config/systemd/user/`，且永不提权。
 
 Target 视图与状态栏切换的是**会话级**设置，不改动配置默认值。面板跟随会话；而
@@ -112,20 +112,20 @@ system 处理）。
 ## 支持的 systemd 版本
 
 本版本附带 **systemd 258、259、260、261**（每个系列的最新稳定补丁）的指令数据。
-扩展会自动匹配目标机器（遵循 `systemd.host`）的 systemd 版本（`systemctl
+扩展会自动匹配目标机器（遵循 `systemd-toolkit.host`）的 systemd 版本（`systemctl
 --version`），让语言功能始终使用正确的指令数据。若目标无 systemd，或其版本没有
 对应的指令数据，会弹出选择器让你挑选版本——该选择仅对当前主机连接生效，切换主机后
 会重新判定。
 
 ## 设置
 
-- `systemd.docSource` — `online`（默认）或 `man`。
-- `systemd.onlineDocBase` — `online` 模式使用的基础 URL。
-- `systemd.systemctlPath` / `systemd.journalctlPath` — 二进制文件路径。
-- `systemd.host` — 要操作的 SSH 别名（留空 = 本机）。
-- `systemd.scope` — `system` | `user`。
-- `systemd.sshPath` — `ssh` 二进制路径。
-- `systemd.authMethod` — 提权方式：`sudo`（默认）/ `pkexec` / `none`。
+- `systemd-toolkit.docSource` — `online`（默认）或 `man`。
+- `systemd-toolkit.onlineDocBase` — `online` 模式使用的基础 URL。
+- `systemd-toolkit.systemctlPath` / `systemd-toolkit.journalctlPath` — 二进制文件路径。
+- `systemd-toolkit.host` — 要操作的 SSH 别名（留空 = 本机）。
+- `systemd-toolkit.scope` — `system` | `user`。
+- `systemd-toolkit.sshPath` — `ssh` 二进制路径。
+- `systemd-toolkit.authMethod` — 提权方式：`sudo`（默认）/ `pkexec` / `none`。
 
 ## 指令数据是如何生成的
 
@@ -152,5 +152,5 @@ npm run package   # → systemd-toolkit-0.1.0.vsix
 
 - 布尔型指令补全为 `yes/no/true/false/on/off`。
 - 时间跨度（`5min`、`1h 30min`）和大小（`512M`）等取值暂为自由文本，未自动补全。
-- 需要 root 的命令按 `systemd.authMethod`（默认 `sudo`）在终端里提权运行，以便
+- 需要 root 的命令按 `systemd-toolkit.authMethod`（默认 `sudo`）在终端里提权运行，以便
   交互式认证。

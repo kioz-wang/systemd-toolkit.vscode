@@ -18,7 +18,7 @@ const UNIT_NAME_RE = /([\w@.:-]+\.(service|socket|target|timer|path|mount|swap|s
 /** Build the online documentation URL for a directive. */
 export function docUrl(manPage: string, name: string): string {
     const base = vscode.workspace
-        .getConfiguration('systemd')
+        .getConfiguration('systemd-toolkit')
         .get<string>('onlineDocBase', 'https://www.freedesktop.org/software/systemd/man/latest/');
     const anchor = encodeURIComponent(name + '=');
     return `${base}${manPage}.html#${anchor}`;
@@ -83,7 +83,7 @@ export class SystemdHoverProvider implements vscode.HoverProvider {
             md.appendMarkdown('\n\n');
         }
         md.appendMarkdown('---\n\n');
-        const source = vscode.workspace.getConfiguration('systemd').get<string>('docSource', 'online');
+        const source = vscode.workspace.getConfiguration('systemd-toolkit').get<string>('docSource', 'online');
         if (source === 'man') {
             md.appendMarkdown(`See \`man ${directive.manPage}\``);
         } else {
@@ -110,7 +110,7 @@ export class SystemdDocumentLinkProvider implements vscode.DocumentLinkProvider 
 
     private async doProvideDocumentLinks(document: vscode.TextDocument): Promise<vscode.DocumentLink[]> {
         const online = vscode.workspace
-            .getConfiguration('systemd')
+            .getConfiguration('systemd-toolkit')
             .get<string>('docSource', 'online') === 'online';
         const resolved = resolveFile(document);
         if (!resolved) {

@@ -107,9 +107,9 @@ switch host or scope for the session.
 
 ### Remote (SSH) & scope
 
-- `systemd.host` — SSH alias (from `~/.ssh/config`) to operate on; empty =
+- `systemd-toolkit.host` — SSH alias (from `~/.ssh/config`) to operate on; empty =
   local. Remote commands reuse one multiplexed SSH connection.
-- `systemd.scope` — `system` (default) or `user` (`systemctl --user`). User
+- `systemd-toolkit.scope` — `system` (default) or `user` (`systemctl --user`). User
   scope deploys to `~/.config/systemd/user/` and never elevates.
 
 The Target view and status bar switch these for the *session* without changing
@@ -120,7 +120,7 @@ the settings. The panel follows the session; the editor CodeLens follows the
 
 Ships directive data for **systemd 258, 259, 260, 261** (latest stable patch
 of each series). The extension automatically matches the target's systemd
-version (`systemctl --version`, honouring `systemd.host`) so language features
+version (`systemctl --version`, honouring `systemd-toolkit.host`) so language features
 always use the right directive data. If the target has no systemd, or its
 version has no matching data, a picker asks you to choose a version — the choice
 applies to the current host connection only and is re-evaluated when you switch
@@ -128,13 +128,13 @@ hosts.
 
 ## Settings
 
-- `systemd.docSource` — `online` (default) or `man`.
-- `systemd.onlineDocBase` — base URL for `online`.
-- `systemd.systemctlPath` / `systemd.journalctlPath` — binary paths.
-- `systemd.host` — SSH alias to operate on (empty = local).
-- `systemd.scope` — `system` | `user`.
-- `systemd.sshPath` — path to `ssh`.
-- `systemd.authMethod` — `sudo` (default) / `pkexec` / `none`.
+- `systemd-toolkit.docSource` — `online` (default) or `man`.
+- `systemd-toolkit.onlineDocBase` — base URL for `online`.
+- `systemd-toolkit.systemctlPath` / `systemd-toolkit.journalctlPath` — binary paths.
+- `systemd-toolkit.host` — SSH alias to operate on (empty = local).
+- `systemd-toolkit.scope` — `system` | `user`.
+- `systemd-toolkit.sshPath` — path to `ssh`.
+- `systemd-toolkit.authMethod` — `sudo` (default) / `pkexec` / `none`.
 
 ## How the directive data is produced
 
@@ -163,5 +163,5 @@ project**.
 - Boolean directives complete as `yes/no/true/false/on/off`.
 - Time-span (`5min`, `1h 30min`) and size (`512M`) values are free-form, not
   auto-completed.
-- Privileged commands run through `systemd.authMethod` (default `sudo`) in a
+- Privileged commands run through `systemd-toolkit.authMethod` (default `sudo`) in a
   terminal for interactive auth.

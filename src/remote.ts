@@ -26,7 +26,7 @@ let sessionScope: UnitScope | undefined;
 
 /** SSH host (alias from ~/.ssh/config) to operate on; empty string = local. */
 export function host(): string {
-    const configured = (vscode.workspace.getConfiguration('systemd').get<string>('host', '') || '').trim();
+    const configured = (vscode.workspace.getConfiguration('systemd-toolkit').get<string>('host', '') || '').trim();
     return sessionHost !== undefined ? sessionHost : configured;
 }
 
@@ -43,7 +43,7 @@ export type UnitScope = 'system' | 'user';
 
 /** The active unit scope: 'system' (default) or 'user'. */
 export function scope(): UnitScope {
-    const configured = (vscode.workspace.getConfiguration('systemd').get<string>('scope', 'system') || '').trim();
+    const configured = (vscode.workspace.getConfiguration('systemd-toolkit').get<string>('scope', 'system') || '').trim();
     const value = sessionScope !== undefined ? sessionScope : configured;
     return value === 'user' ? 'user' : 'system';
 }
@@ -65,7 +65,7 @@ function elevationPrefix(scopeOverride?: UnitScope): string[] {
     if ((scopeOverride ?? scope()) !== 'system') {
         return [];
     }
-    const auth = (vscode.workspace.getConfiguration('systemd').get<string>('authMethod', 'sudo') || '').trim();
+    const auth = (vscode.workspace.getConfiguration('systemd-toolkit').get<string>('authMethod', 'sudo') || '').trim();
     return auth !== 'none' && auth !== '' ? [auth] : [];
 }
 
@@ -146,14 +146,14 @@ export function journalctlArgs(args: string[], scopeOverride?: UnitScope): strin
 
 /** Run a systemctl command on the target, honouring the given/active scope. */
 export function systemctl(args: string[], elevate = false, scopeOverride?: UnitScope): Promise<ExecResult> {
-    const bin = vscode.workspace.getConfiguration('systemd').get<string>('systemctlPath', 'systemctl');
+    const bin = vscode.workspace.getConfiguration('systemd-toolkit').get<string>('systemctlPath', 'systemctl');
     const built = buildCommand(bin, systemctlArgs(args, scopeOverride), elevate, scopeOverride);
     return exec(built.cmd, built.args);
 }
 
 /** Run a journalctl command on the target, honouring the given/active scope. */
 export function journalctl(args: string[], elevate = false, scopeOverride?: UnitScope): Promise<ExecResult> {
-    const bin = vscode.workspace.getConfiguration('systemd').get<string>('journalctlPath', 'journalctl');
+    const bin = vscode.workspace.getConfiguration('systemd-toolkit').get<string>('journalctlPath', 'journalctl');
     const built = buildCommand(bin, journalctlArgs(args, scopeOverride), elevate, scopeOverride);
     return exec(built.cmd, built.args);
 }
@@ -186,14 +186,14 @@ export async function writeTempFile(unit: string, content: string): Promise<stri
 }
 
 /**
- * Reuse a single "systemd" terminal for every command execution, so running a
- * command (from CodeLens, the panel, or a deploy) never opens a new tab. The
- * terminal is the user's default interactive shell, which stays open after a
- * command finishes (output remains visible; press Enter to continue).
+ * Reuse a single "systemd Toolkit" terminal for every command execution, so
+ * running a command (from CodeLens, the panel, or a deploy) never opens a new
+ * tab. The terminal is the user's default interactive shell, which stays open
+ * after a command finishes (output remains visible; press Enter to continue).
  */
 function systemdTerminal(): vscode.Terminal {
-    const existing = vscode.window.terminals.find((t) => t.name === 'systemd');
-    return existing ?? vscode.window.createTerminal({ name: 'systemd' });
+    const existing = vscode.window.terminals.find((t) => t.name === 'systemd Toolkit');
+    return existing ?? vscode.window.createTerminal({ name: 'systemd Toolkit' });
 }
 
 /**
@@ -256,7 +256,7 @@ function trackCompletion(execution: vscode.TerminalShellExecution): void {
 
 /** Path to the ssh binary, from configuration. */
 function sshBin(): string {
-    return (vscode.workspace.getConfiguration('systemd').get<string>('sshPath', 'ssh') || 'ssh').trim();
+    return (vscode.workspace.getConfiguration('systemd-toolkit').get<string>('sshPath', 'ssh') || 'ssh').trim();
 }
 
 let homeCache: string | undefined;

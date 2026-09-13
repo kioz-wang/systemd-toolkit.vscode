@@ -28,7 +28,7 @@ export function runSystemctl(
     privileged: boolean,
     scopeOverride?: UnitScope
 ): void {
-    const bin = vscode.workspace.getConfiguration('systemd').get<string>('systemctlPath', 'systemctl');
+    const bin = vscode.workspace.getConfiguration('systemd-toolkit').get<string>('systemctlPath', 'systemctl');
     const args = unit ? [action, unit] : [action];
     runInTerminal(shellCommand(bin, systemctlArgs(args, scopeOverride), privileged, scopeOverride));
 }

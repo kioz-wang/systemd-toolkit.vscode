@@ -37,8 +37,9 @@
 | `systemd: Show Unit Logs` | 实时 `journalctl -u <unit> --follow` |
 | `systemd: Deploy Unit File` | 写文件 + `daemon-reload` |
 
-单元名从当前活动编辑器推断（如 `sshd.service`），无法推断时弹出输入框。输出默认
-写入 **systemd** 输出通道；开启 `systemd.runInTerminal` 后改为在集成终端中运行。
+单元名从当前活动编辑器推断（如 `sshd.service`），无法推断时弹出输入框。命令在
+集成 **systemd** 终端中运行；诊断信息（扩展日志 + 每条执行过的命令记录）写入
+**systemd Toolkit** 输出通道。
 
 ### Units 面板
 
@@ -127,7 +128,6 @@ system 处理）。
 - `systemd.host` — 要操作的 SSH 别名（留空 = 本机）。
 - `systemd.scope` — `system` | `user`。
 - `systemd.sshPath` — `ssh` 二进制路径。
-- `systemd.runInTerminal` — 在终端而非输出通道中运行命令。
 - `systemd.authMethod` — 提权方式：`sudo`（默认）/ `pkexec` / `none`。
 - `systemd.versionOverride` — 强制指令数据版本。
 

@@ -1,19 +1,10 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
-import { exec } from './process';
-import { buildCommand, elevationEnabled, BuiltCommand, systemctlArgs, scope, UnitScope } from './remote';
+import { buildCommand, BuiltCommand, systemctlArgs, UnitScope } from './remote';
 import { showLogs } from './logs';
+import { command } from './logger';
 
 const UNIT_EXT = /\.(service|socket|timer|path|mount|swap|automount|target|slice|scope)$/;
-
-let outputChannel: vscode.OutputChannel | undefined;
-
-export function channel(): vscode.OutputChannel {
-    if (!outputChannel) {
-        outputChannel = vscode.window.createOutputChannel('systemd');
-    }
-    return outputChannel;
-}
 
 /** Infer a unit name from the active editor, or prompt the user. */
 export async function resolveUnit(): Promise<string | undefined> {
@@ -31,45 +22,15 @@ export async function resolveUnit(): Promise<string | undefined> {
     });
 }
 
-interface RunOptions {
-    /** Always run in an integrated terminal (needed for interactive auth). */
-    forceTerminal?: boolean;
-}
-
-/** Run a built command, showing output in a terminal or the output channel. */
-export async function run(built: BuiltCommand, opts: RunOptions = {}): Promise<void> {
-    const config = vscode.workspace.getConfiguration('systemd');
-    const useTerminal = config.get<boolean>('runInTerminal', false) || opts.forceTerminal === true;
-
-    if (useTerminal) {
-        const terminal = vscode.window.createTerminal({
-            name: 'systemd',
-            shellPath: built.cmd,
-            shellArgs: built.args,
-        });
-        terminal.show();
-        return;
-    }
-
-    const ch = channel();
-    ch.appendLine(`$ ${built.display}`);
-    const result = await exec(built.cmd, built.args);
-    if (result.stdout) {
-        ch.append(result.stdout.replace(/\s+$/, ''));
-    }
-    if (result.stderr) {
-        ch.append(result.stderr.replace(/\s+$/, ''));
-    }
-    if (result.code !== 0 && /access denied|interactive authentication/i.test(result.stderr + result.stdout)) {
-        ch.appendLine('');
-        ch.appendLine(
-            'Hint: this command requires elevated privileges. ' +
-            'Set "systemd.authMethod" to "sudo" or "pkexec" (default "sudo"), ' +
-            'or run it in a terminal.'
-        );
-    }
-    ch.appendLine('');
-    ch.show(true);
+/** Run a built command in an integrated terminal, recording it in the log channel. */
+export async function run(built: BuiltCommand): Promise<void> {
+    command(built.display);
+    const terminal = vscode.window.createTerminal({
+        name: 'systemd',
+        shellPath: built.cmd,
+        shellArgs: built.args,
+    });
+    terminal.show();
 }
 
 /** Run a systemctl action against a specific unit (or without one). */
@@ -82,10 +43,7 @@ export async function runSystemctl(
     const bin = vscode.workspace.getConfiguration('systemd').get<string>('systemctlPath', 'systemctl');
     const args = unit ? [action, unit] : [action];
     const built = buildCommand(bin, systemctlArgs(args, scopeOverride), privileged, scopeOverride);
-    // Elevation (and thus the terminal for interactive auth) only applies to
-    // system scope; user scope never elevates.
-    const forceTerminal = privileged && (scopeOverride ?? scope()) === 'system' && elevationEnabled();
-    await run(built, { forceTerminal });
+    await run(built);
 }
 
 /** Show live, continuously-refreshing logs for a unit in a read-only editor tab. */

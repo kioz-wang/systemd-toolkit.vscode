@@ -39,8 +39,9 @@ live logs, and unit-file deploy — locally and over SSH.
 | `systemd: Deploy Unit File` | write file + `daemon-reload` |
 
 The unit name is inferred from the active editor (e.g. `sshd.service`), or you
-are prompted. Output goes to the **systemd** output channel, or an integrated
-terminal when `systemd.runInTerminal` is set.
+are prompted. Commands run in an integrated **systemd** terminal. Diagnostics
+(extension logs and a record of every command executed) go to the **systemd
+Toolkit** output channel.
 
 ### Units panel
 
@@ -135,7 +136,6 @@ Force a version with `systemd.versionOverride`.
 - `systemd.host` — SSH alias to operate on (empty = local).
 - `systemd.scope` — `system` | `user`.
 - `systemd.sshPath` — path to `ssh`.
-- `systemd.runInTerminal` — run commands in a terminal instead of the output channel.
 - `systemd.authMethod` — `sudo` (default) / `pkexec` / `none`.
 - `systemd.versionOverride` — force directive-data version.
 

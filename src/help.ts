@@ -3,6 +3,7 @@ import { lineContext } from './context';
 import { resolveFile, sectionAt, findDirective } from './data';
 import { isUnitDeployed } from './remote';
 import { snapshotUri, preloadSnapshots, documentScope } from './unitfile';
+import { error } from './logger';
 
 /** Directives whose values are unit names (clickable to a unit preview). */
 const DEPENDENCY_DIRECTIVES = new Set([
@@ -45,7 +46,7 @@ export class SystemdHoverProvider implements vscode.HoverProvider {
         try {
             return this.doProvideHover(document, position);
         } catch (err) {
-            console.error('[systemd] hover provider error:', err);
+            error(`hover provider error: ${err}`);
             return undefined;
         }
     }
@@ -102,7 +103,7 @@ export class SystemdDocumentLinkProvider implements vscode.DocumentLinkProvider 
         try {
             return this.doProvideDocumentLinks(document);
         } catch (err) {
-            console.error('[systemd] document link provider error:', err);
+            error(`document link provider error: ${err}`);
             return [];
         }
     }

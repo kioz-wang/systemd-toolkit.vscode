@@ -161,7 +161,8 @@ summaries. Each source checkout emits one `data/directives-v<N>.json` and a
 | `src/codelens.ts` | editor status + action CodeLens |
 | `src/logs.ts` | live logs (systemd-log virtual documents) |
 | `src/statusbar.ts` | status bar (host · scope · version) |
-| `src/process.ts` | child_process wrapper (spawn/exec, stdin support) |
+| `src/process.ts` | child_process wrapper (spawn/exec, stdin support); records commands in the log |
+| `src/logger.ts` | the "systemd Toolkit" log channel (extension logs + command records) |
 | `src/extension.ts` | assembly: register providers, commands, tree, CodeLens, status bar |
 
 Dependencies are one-way: `extension.ts` depends on everything; feature modules
@@ -236,14 +237,15 @@ direct dependencies so Ctrl+Click opens instantly.
 
 - **Infer unit name**: `path.basename(activeEditor.document.fileName)` if it
   matches `/\.(service|socket|...)$/`, else `showInputBox`.
-- **Two outputs**: output channel by default; terminal when
-  `systemd.runInTerminal` or when elevating.
+- **Output**: commands run in an integrated terminal; the **systemd Toolkit**
+  log channel records each command line (`process.ts` `exec`) plus extension
+  lifecycle/error logs — diagnostics only, no raw command output.
 - **Subprocesses**: `spawn`/`exec` (`process.ts`), no shell string concat; log
   commands stream with `--follow`.
-- **Auth**: `start/stop/restart/enable/disable/daemon-reload` need root. `spawn`
-  has no TTY, so systemctl's polkit auth fails with "interactive authentication
-  not enabled". Fix: prefix with `systemd.authMethod` (`sudo`/`pkexec`) and
-  **force a terminal** (which provides a TTY). `status`/`logs` don't elevate.
+- **Auth**: `start/stop/restart/enable/disable/daemon-reload` need root. They are
+  prefixed with `systemd.authMethod` (`sudo`/`pkexec`); because commands run in
+  an integrated terminal (which provides a TTY), interactive auth works.
+  `status`/`logs` don't elevate.
 - **Remote**: `src/remote.ts`'s `buildCommand(base, args, elevate, scope)`
   builds argv uniformly — elevation prefix first, then `ssh <host>` outermost.
   ssh uses ControlMaster options (`ControlMaster=auto` + `ControlPath` +

@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { lineContext } from './context';
 import { resolveFile, sectionAt, directivesFor, findDirective } from './data';
+import { error } from './logger';
 
 export class SystemdCompletionProvider implements vscode.CompletionItemProvider {
     provideCompletionItems(
@@ -12,7 +13,7 @@ export class SystemdCompletionProvider implements vscode.CompletionItemProvider 
         try {
             return this.doProvideCompletionItems(document, position);
         } catch (err) {
-            console.error('[systemd] completion provider error:', err);
+            error(`completion provider error: ${err}`);
             return undefined;
         }
     }

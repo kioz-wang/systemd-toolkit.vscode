@@ -145,7 +145,8 @@ VS Code 识别成 `ini`/`plaintext`，而非我们的 `systemd` 语言。为让�
 | `src/codelens.ts` | 编辑器状态 + 操作 CodeLens |
 | `src/logs.ts` | 实时日志（systemd-log 虚拟文档） |
 | `src/statusbar.ts` | 状态栏（host · scope · 版本） |
-| `src/process.ts` | child_process 封装（spawn/exec，支持 stdin） |
+| `src/process.ts` | child_process 封装（spawn/exec，支持 stdin）；在日志通道记录命令 |
+| `src/logger.ts` | "systemd Toolkit" 日志通道（扩展日志 + 命令记录） |
 | `src/extension.ts` | 组装：注册 provider、命令、树视图、CodeLens、状态栏 |
 
 依赖单向：`extension.ts` 依赖所有模块；功能模块依赖 `data.ts`/`context.ts`；
@@ -213,13 +214,13 @@ resolve resource"）。
 
 - **推断单元名**：`path.basename(activeEditor.document.fileName)` 匹配
   `/\.(service|socket|...)$/` 就用它，否则 `showInputBox`。
-- **两种输出**：默认 output channel；`systemd.runInTerminal` 或提权时用终端。
+- **输出**：命令在集成终端中运行；**systemd Toolkit** 日志通道记录每条命令
+  （`process.ts` 的 `exec`）+ 扩展生命周期/错误日志——纯诊断，不混入命令的原始输出。
 - **子进程**：用 `spawn`/`exec`（`process.ts`），避免 shell 拼接；日志命令在
   `--follow` 流式。
-- **授权**：`start/stop/restart/enable/disable/daemon-reload` 需要 root。`spawn`
-  无 TTY，`systemctl` 的 polkit 认证会报 "interactive authentication not
-  enabled"。解法：`systemd.authMethod`（`sudo`/`pkexec`）加前缀并**强制终端**运行
-  （终端提供 TTY）；`status`/`logs` 无需提权。
+- **授权**：`start/stop/restart/enable/disable/daemon-reload` 需要 root，会加
+  `systemd.authMethod`（`sudo`/`pkexec`）前缀；因命令都在集成终端中运行（提供
+  TTY），交互认证可用。`status`/`logs` 无需提权。
 - **远程**：`src/remote.ts` 的 `buildCommand(base, args, elevate, scope)` 统一
   构造——先加提权前缀、再在最外层包 `ssh <host>`。ssh 带 ControlMaster 选项
   （`ControlMaster=auto` + `ControlPath` + `ControlPersist=60`），复用一条连接，

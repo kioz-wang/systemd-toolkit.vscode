@@ -10,6 +10,7 @@ import { registerUnitFile, onUnitsChanged } from './unitfile';
 import { SystemdCodeLensProvider } from './codelens';
 import { registerStatusBar } from './statusbar';
 import { onHostChanged, onScopeChanged } from './remote';
+import { info } from './logger';
 
 /**
  * Document selectors for the language features. The `systemd` language covers
@@ -118,7 +119,7 @@ async function applyDirectiveVersion(): Promise<void> {
         return;
     }
 
-    console.log(`systemd extension activated (data v${decision.version})`);
+    info(`systemd extension activated (data v${decision.version})`);
 }
 
 export function deactivate(): void {

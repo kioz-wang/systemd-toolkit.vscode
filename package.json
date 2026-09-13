@@ -157,11 +157,6 @@
           "default": "journalctl",
           "description": "Path to the journalctl binary."
         },
-        "systemd.runInTerminal": {
-          "type": "boolean",
-          "default": false,
-          "description": "Run systemctl/journalctl in an integrated terminal instead of an output channel."
-        },
         "systemd.authMethod": {
           "type": "string",
           "enum": [

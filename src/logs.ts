@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import * as cp from 'child_process';
 import { buildCommand, journalctlArgs, scope, UnitScope } from './remote';
+import { command, error } from './logger';
 
 /** Virtual scheme for the read-only, continuously-refreshing log view. */
 const LOG_SCHEME = 'systemd-log';
@@ -68,10 +69,15 @@ class LogContentProvider implements vscode.TextDocumentContentProvider {
             s
         );
         const proc = cp.spawn(built.cmd, built.args, { shell: false });
+        command(built.display);
         const session: LogSession = { unit, proc, text: '', pending: '' };
         proc.stdout.on('data', (d: Buffer) => this.onData(session, uri, d.toString()));
         proc.stderr.on('data', (d: Buffer) => this.onData(session, uri, d.toString()));
-        proc.on('error', (e) => this.onData(session, uri, String(e) + '\n'));
+        proc.on('error', (e) => {
+            const message = String(e);
+            error(`$ ${built.display}  →  ${message}`);
+            this.onData(session, uri, message + '\n');
+        });
         return session;
     }
 

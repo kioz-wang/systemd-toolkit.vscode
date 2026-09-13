@@ -27,6 +27,8 @@ live logs, and unit-file deploy — locally and over SSH.
 - **Snippets** — templates for service, oneshot, timer, socket, mount,
   automount, path, slice and target units (e.g. type `service`).
 
+![Editing: directive/value/section completion, hover, Ctrl+Click](media/editing.gif)
+
 ### Commands
 
 | Command | Action |
@@ -72,6 +74,8 @@ Every unit also offers Status, View Unit File, and Edit Unit File. In the
 **Installed** tree, each group has a **New** button to create a unit of that
 type.
 
+![Units panel: Target/Loaded/Installed views and state-dependent actions](media/units-panel.gif)
+
 ### Editor CodeLens
 
 For unit files the editor shows a state-dependent CodeLens:
@@ -93,12 +97,16 @@ For unit files the editor shows a state-dependent CodeLens:
 Deploy does **not** start or enable the unit — those are separate steps
 (`Start` / `Enable`).
 
+![Editor CodeLens: state-dependent actions, Deploy → Start/Enable flow](media/codelens.gif)
+
 ### Live logs
 
 **Show Unit Logs** opens a read-only tab streaming
 `journalctl -u <unit> --follow -n 300` (locally or over SSH). It refreshes
 continuously, throttled and capped, and stops its process when the tab closes.
 Log views carry no CodeLens.
+
+![Live logs: streaming journalctl --follow in a read-only tab](media/live-logs.gif)
 
 ### Status bar
 

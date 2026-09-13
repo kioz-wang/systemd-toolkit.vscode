@@ -26,6 +26,8 @@
 - **代码片段（Snippet）** — 提供 service、oneshot、timer、socket、mount、
   automount、path、slice、target 等单元模板（例如输入 `service` 触发）。
 
+![编辑：指令/取值/节补全、悬停文档、Ctrl+Click](media/editing.gif)
+
 ### 命令
 
 | 命令 | 动作 |
@@ -68,6 +70,8 @@
 每个 unit 还提供 Status、View Unit File、Edit Unit File。**Installed** 树的每个
 分组都有 **New** 按钮，可新建该类型的 unit。
 
+![Units 面板：Target/Loaded/Installed 视图与状态相关操作](media/units-panel.gif)
+
 ### 编辑器 CodeLens
 
 对 unit 文件，编辑器显示按状态动态变化的 CodeLens：
@@ -88,11 +92,15 @@
 
 Deploy **不会** start 或 enable 该 unit——那是独立的步骤（`Start` / `Enable`）。
 
+![编辑器 CodeLens：状态相关操作，Deploy → Start/Enable 流程](media/codelens.gif)
+
 ### 实时日志
 
 **Show Unit Logs** 打开一个只读标签页，流式显示
 `journalctl -u <unit> --follow -n 300`（本地或 SSH）。内容持续刷新，做了节流与
 大小上限，标签页关闭时终止后台进程。日志视图不显示 CodeLens。
+
+![实时日志：只读标签页流式显示 journalctl --follow](media/live-logs.gif)
 
 ### 状态栏
 

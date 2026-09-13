@@ -32,10 +32,10 @@ export function registerStatusBar(context: vscode.ExtensionContext): () => void 
             versionDetail = 'no directive data loaded';
         } else if (!available) {
             versionText = `$(warning) v${v}`;
-            versionDetail = `v${v} (fallback — systemd not detected on target)`;
+            versionDetail = `v${v} (selected — systemd not detected on target)`;
         } else if (det && det !== v) {
             versionText = `$(warning) v${v}`;
-            versionDetail = `v${v} (target is v${det})`;
+            versionDetail = `v${v} (selected — target is v${det})`;
         } else {
             versionText = `v${v}`;
             versionDetail = `v${v}`;

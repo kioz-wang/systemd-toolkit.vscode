@@ -172,11 +172,6 @@
           "default": "sudo",
           "description": "How to elevate privileges for management commands (start/stop/restart/reload/enable/disable/daemon-reload)."
         },
-        "systemd.versionOverride": {
-          "type": "string",
-          "default": "",
-          "description": "Force the directive data version (e.g. \"262\"). When empty, the local systemd version is detected automatically."
-        },
         "systemd.host": {
           "type": "string",
           "default": "",

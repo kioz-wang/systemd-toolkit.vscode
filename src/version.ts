@@ -1,21 +1,18 @@
 import * as vscode from 'vscode';
 import { systemctl } from './remote';
-import { manifestEntry, latestVersion } from './data';
-
-export interface VersionDecision {
-    /** 'ok' (exact match), 'override' (user forced), 'fallback' (undetectable), 'unsupported'. */
-    status: 'ok' | 'override' | 'fallback' | 'unsupported';
-    /** Chosen version key (present unless status is 'unsupported'). */
-    version?: string;
-    /** Local systemd version that was detected, if any. */
-    detected?: string;
-}
+import { manifestEntry, supportedVersions } from './data';
 
 /** Whether systemd is reachable on the current target. 'unknown' until first detection. */
 export type SystemdAvailability = 'unknown' | 'available' | 'unavailable';
 
 let availability: SystemdAvailability = 'unknown';
 let detectedSystemd: string | undefined;
+
+/**
+ * A version the user picked for the current host connection (because auto-match
+ * failed). Cleared whenever the host changes, then re-evaluated.
+ */
+let sessionVersion: string | undefined;
 
 /** The last detection result: can the target run `systemctl --version`? */
 export function systemdAvailability(): SystemdAvailability {
@@ -30,6 +27,11 @@ export function isSystemdAvailable(): boolean {
 /** The actual systemd version detected on the target, or undefined. */
 export function detectedSystemdVersion(): string | undefined {
     return detectedSystemd;
+}
+
+/** Clear the per-connection version choice (called on host switch). */
+export function resetVersionChoice(): void {
+    sessionVersion = undefined;
 }
 
 /**
@@ -47,47 +49,48 @@ export async function detectSystemdVersion(): Promise<string | undefined> {
 }
 
 /**
- * Pure decision logic (testable without side effects):
- *   - `override` wins when it names a supported version.
- *   - otherwise `detected` is matched exactly.
- *   - if detection failed, fall back to `latest`.
- *   - if detected but unsupported, report 'unsupported'.
+ * Prompt the user to choose a directive-data version. Shown when the target has
+ * no systemd, or its version has no matching data. Returns the chosen version,
+ * or undefined if the user cancels (language features stay disabled).
  */
-export function decideVersion(
-    override: string | undefined,
-    detected: string | undefined,
-    latest: string | undefined
-): VersionDecision {
-    if (override && manifestEntry(override)) {
-        return { status: 'override', version: override };
-    }
-    if (detected) {
-        if (manifestEntry(detected)) {
-            return { status: 'ok', version: detected, detected };
+async function promptForVersion(reason: string): Promise<string | undefined> {
+    const versions = supportedVersions();
+    const pick = await vscode.window.showQuickPick(
+        versions.map((v) => ({ label: v, description: 'directive data' })),
+        {
+            title: `systemd: ${reason}`,
+            placeHolder: 'Choose a systemd version for directive data',
         }
-        return { status: 'unsupported', detected };
-    }
-    if (latest) {
-        return { status: 'fallback', version: latest };
-    }
-    return { status: 'unsupported' };
+    );
+    return pick?.label;
 }
 
 /**
- * Decide which data version to use, reading config and detecting the local
- * version as needed.
+ * Resolve which directive-data version to use:
+ *   1. A user choice made for this connection wins (no re-detection).
+ *   2. Otherwise match the target's detected systemd version.
+ *   3. If detection fails or the version is unsupported, prompt the user.
+ * Returns the version key, or undefined when no data should be loaded.
  */
-export async function chooseVersion(): Promise<VersionDecision> {
-    const config = vscode.workspace.getConfiguration('systemd');
-    const override = (config.get<string>('versionOverride', '') || '').trim();
-    if (override && !manifestEntry(override)) {
-        void vscode.window.showWarningMessage(
-            `systemd: versionOverride '${override}' is not a supported version; ignoring it.`
-        );
+export async function chooseVersion(): Promise<string | undefined> {
+    if (sessionVersion && manifestEntry(sessionVersion)) {
+        return sessionVersion;
     }
 
     const detected = await detectSystemdVersion();
     detectedSystemd = detected;
     availability = detected !== undefined ? 'available' : 'unavailable';
-    return decideVersion(override, detected, latestVersion());
+
+    if (detected && manifestEntry(detected)) {
+        return detected;
+    }
+
+    const reason = detected
+        ? `systemd v${detected} is not supported`
+        : 'systemd not detected on target';
+    const chosen = await promptForVersion(reason);
+    if (chosen) {
+        sessionVersion = chosen;
+    }
+    return chosen;
 }

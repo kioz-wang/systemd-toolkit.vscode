@@ -119,14 +119,12 @@ the settings. The panel follows the session; the editor CodeLens follows the
 ## Supported systemd versions
 
 Ships directive data for **systemd 258, 259, 260, 261** (latest stable patch
-of each series). On startup the extension detects the target's version
-(`systemctl --version`, honouring `systemd.host`):
-
-- exact match → load that version's data;
-- unsupported → error, language features disabled;
-- detection failure → fall back to the newest supported version with a warning.
-
-Force a version with `systemd.versionOverride`.
+of each series). The extension automatically matches the target's systemd
+version (`systemctl --version`, honouring `systemd.host`) so language features
+always use the right directive data. If the target has no systemd, or its
+version has no matching data, a picker asks you to choose a version — the choice
+applies to the current host connection only and is re-evaluated when you switch
+hosts.
 
 ## Settings
 
@@ -137,7 +135,6 @@ Force a version with `systemd.versionOverride`.
 - `systemd.scope` — `system` | `user`.
 - `systemd.sshPath` — path to `ssh`.
 - `systemd.authMethod` — `sudo` (default) / `pkexec` / `none`.
-- `systemd.versionOverride` — force directive-data version.
 
 ## How the directive data is produced
 

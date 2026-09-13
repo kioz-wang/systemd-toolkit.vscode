@@ -112,13 +112,10 @@ system 处理）。
 ## 支持的 systemd 版本
 
 本版本附带 **systemd 258、259、260、261**（每个系列的最新稳定补丁）的指令数据。
-启动时扩展检测目标机器（遵循 `systemd.host`）的版本（`systemctl --version`）：
-
-- 精确匹配 → 加载该版本数据；
-- 不支持 → 显示错误并禁用语言功能；
-- 检测失败 → 回退到最新支持版本并给出警告。
-
-可通过 `systemd.versionOverride` 强制指定版本。
+扩展会自动匹配目标机器（遵循 `systemd.host`）的 systemd 版本（`systemctl
+--version`），让语言功能始终使用正确的指令数据。若目标无 systemd，或其版本没有
+对应的指令数据，会弹出选择器让你挑选版本——该选择仅对当前主机连接生效，切换主机后
+会重新判定。
 
 ## 设置
 
@@ -129,7 +126,6 @@ system 处理）。
 - `systemd.scope` — `system` | `user`。
 - `systemd.sshPath` — `ssh` 二进制路径。
 - `systemd.authMethod` — 提权方式：`sudo`（默认）/ `pkexec` / `none`。
-- `systemd.versionOverride` — 强制指令数据版本。
 
 ## 指令数据是如何生成的
 

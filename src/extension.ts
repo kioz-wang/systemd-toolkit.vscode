@@ -3,8 +3,8 @@ import { SystemdCompletionProvider } from './completion';
 import { SystemdHoverProvider, SystemdDocumentLinkProvider } from './help';
 import { registerCommands } from './commands';
 import { registerLogs } from './logs';
-import { loadManifest, setActiveVersion, supportedVersions, clearActiveVersion } from './data';
-import { chooseVersion } from './version';
+import { loadManifest, setActiveVersion, clearActiveVersion } from './data';
+import { chooseVersion, resetVersionChoice } from './version';
 import { registerTree } from './tree';
 import { registerUnitFile, onUnitsChanged } from './unitfile';
 import { SystemdCodeLensProvider } from './codelens';
@@ -83,7 +83,12 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 
     void apply();
     context.subscriptions.push(
-        onHostChanged(() => void apply()),
+        // Re-evaluate the version on the new host: clear any per-connection
+        // choice and re-run detection/prompt.
+        onHostChanged(() => {
+            resetVersionChoice();
+            void apply();
+        }),
         // Scope change reuses the same version data but flips which units the
         // code lens sees; refresh it (the tree refreshes itself).
         onScopeChanged(() => codeLens.refresh()),
@@ -91,41 +96,26 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 }
 
 /**
- * Detect the systemd version on the currently selected host and load the
- * matching directive data. Clears the data (disabling language features) when
- * the version is unsupported or detection fails in a way we cannot recover.
+ * Resolve the directive-data version for the current host — matching its
+ * systemd version, or prompting the user when that's impossible — and load the
+ * data. Clears the data (disabling language features) when no version is
+ * resolved.
  */
 async function applyDirectiveVersion(): Promise<void> {
-    const decision = await chooseVersion();
+    const version = await chooseVersion();
 
-    if (decision.status === 'unsupported') {
-        const supported = supportedVersions().join(', ');
+    if (!version) {
         clearActiveVersion();
-        void vscode.window.showErrorMessage(
-            `systemd: systemd ${decision.detected ?? 'unknown'} on the current host is not supported. ` +
-            `Supported versions: ${supported}. ` +
-            `Set "systemd.versionOverride" to one of them to force a version. Language features disabled.`
-        );
+        info('systemd: no directive data loaded (no matching version or selection cancelled).');
         return;
     }
 
-    if (decision.status === 'fallback') {
-        // On platforms without a native systemd (Windows, macOS, …) this is
-        // expected, not an error — the Target view shows a hint instead. On
-        // Linux keep the warning so a broken/unreachable target is visible.
-        if (process.platform === 'linux') {
-            void vscode.window.showWarningMessage(
-                `systemd: could not detect the systemd version on the current host; using v${decision.version} data.`
-            );
-        }
-    }
-
-    if (!setActiveVersion(decision.version!)) {
+    if (!setActiveVersion(version)) {
         void vscode.window.showErrorMessage('systemd: failed to load directive data.');
         return;
     }
 
-    info(`systemd extension activated (data v${decision.version})`);
+    info(`systemd extension activated (data v${version})`);
 }
 
 export function deactivate(): void {

@@ -10,6 +10,7 @@
     "url": "https://github.com/kioz-wang/systemd-toolkit.vscode.git"
   },
   "icon": "resources/systemd.png",
+  "extensionKind": "workspace",
   "engines": {
     "vscode": "^1.80.0"
   },

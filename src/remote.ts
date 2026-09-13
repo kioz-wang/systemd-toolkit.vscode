@@ -7,12 +7,16 @@ import { command, error } from './logger';
 
 const hostChanged = new vscode.EventEmitter<void>();
 const scopeChanged = new vscode.EventEmitter<void>();
+const commandFinished = new vscode.EventEmitter<void>();
 
 /** Fired when the session host is switched (not when config changes). */
 export const onHostChanged = hostChanged.event;
 
 /** Fired when the unit scope (system/user) is switched. */
 export const onScopeChanged = scopeChanged.event;
+
+/** Fired when an interactive terminal command finishes (for refreshing state). */
+export const onCommandFinished = commandFinished.event;
 
 /** Session-level host override; undefined = use the configured default. */
 let sessionHost: string | undefined;
@@ -194,13 +198,14 @@ function systemdTerminal(): vscode.Terminal {
 
 /**
  * Run a shell command on the target in the shared "systemd" terminal. Remote
- * hosts are wrapped in `ssh -t` (a fresh connection, no ControlMaster) so a
- * remote sudo/pkexec still gets a TTY. Shell integration is used when
- * available so the command line is not echoed twice.
+ * hosts are wrapped in `ssh` with the same ControlMaster options as the exec
+ * path (so one connection is reused) plus `-t` to give the session a TTY for
+ * sudo/pkexec. Shell integration is used when available so the command line is
+ * not echoed twice.
  */
 export function runInTerminal(shell: string): void {
     const h = host();
-    const line = h ? `${sshBin()} -t ${h} "${shell}"` : shell;
+    const line = h ? `${sshBin()} ${sshControlOptions(h).join(' ')} -t ${h} "${shell}"` : shell;
     command(line);
     const terminal = systemdTerminal();
     terminal.show();
@@ -216,7 +221,7 @@ export function runInTerminal(shell: string): void {
  */
 function executeInTerminal(terminal: vscode.Terminal, commandLine: string): void {
     if (terminal.shellIntegration) {
-        terminal.shellIntegration.executeCommand(commandLine);
+        trackCompletion(terminal.shellIntegration.executeCommand(commandLine));
         return;
     }
     let done = false;
@@ -224,7 +229,7 @@ function executeInTerminal(terminal: vscode.Terminal, commandLine: string): void
         if (e.terminal === terminal && !done) {
             done = true;
             sub.dispose();
-            e.shellIntegration.executeCommand(commandLine);
+            trackCompletion(e.shellIntegration.executeCommand(commandLine));
         }
     });
     setTimeout(() => {
@@ -237,6 +242,16 @@ function executeInTerminal(terminal: vscode.Terminal, commandLine: string): void
             error(`shell integration unavailable — command not run: ${commandLine}`);
         }
     }, 2000);
+}
+
+/** Fire `onCommandFinished` once the given shell execution has ended. */
+function trackCompletion(execution: vscode.TerminalShellExecution): void {
+    const sub = vscode.window.onDidEndTerminalShellExecution((e) => {
+        if (e.execution === execution) {
+            sub.dispose();
+            commandFinished.fire();
+        }
+    });
 }
 
 /** Path to the ssh binary, from configuration. */

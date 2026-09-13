@@ -9,7 +9,7 @@ import { registerTree } from './tree';
 import { registerUnitFile, onUnitsChanged } from './unitfile';
 import { SystemdCodeLensProvider } from './codelens';
 import { registerStatusBar } from './statusbar';
-import { onHostChanged, onScopeChanged } from './remote';
+import { onHostChanged, onScopeChanged, onCommandFinished } from './remote';
 import { info } from './logger';
 
 /**
@@ -39,6 +39,12 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         // A deploy changes unit load/active state and the panel contents:
         // refresh both the code lens and the Units tree.
         onUnitsChanged(() => {
+            codeLens.refresh();
+            tree.refreshAll();
+        }),
+        // Refresh after any terminal command (start/stop/restart/enable/
+        // disable/deploy) finishes, so the CodeLens reflects the new state.
+        onCommandFinished(() => {
             codeLens.refresh();
             tree.refreshAll();
         }),

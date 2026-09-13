@@ -32,19 +32,20 @@ interface LogTarget {
 }
 
 function logUri(target: LogTarget): vscode.Uri {
-    // The `.log` suffix makes VS Code treat the document as a log file (the
-    // built-in `log` language), so entries get timestamp/level highlighting.
-    return vscode.Uri.parse(`${LOG_SCHEME}:/${target.unit}.log`).with({
-        query: `host=${encodeURIComponent(target.host)}&scope=${target.scope}`,
-    });
+    // Host + scope + unit live in the path, not the query string: query strings
+    // on custom-scheme URIs can break `onDidChange` re-read matching (which is
+    // what drives live refresh) in VS Code. The `.log` suffix selects the
+    // built-in `log` language for highlighting.
+    const h = target.host || 'local';
+    return vscode.Uri.parse(`${LOG_SCHEME}:/${h}/${target.scope}/${target.unit}.log`);
 }
 
 function parseLogUri(uri: vscode.Uri): LogTarget {
-    const qp = new URLSearchParams(uri.query);
+    const segs = uri.path.split('/').filter((s) => s.length > 0);
     return {
-        unit: uri.path.replace(/^\//, '').replace(/\.log$/, ''),
-        host: qp.get('host') ?? '',
-        scope: qp.get('scope') === 'user' ? 'user' : 'system',
+        host: segs[0] && segs[0] !== 'local' ? segs[0] : '',
+        scope: segs[1] === 'user' ? 'user' : 'system',
+        unit: (segs[2] ?? '').replace(/\.log$/, ''),
     };
 }
 

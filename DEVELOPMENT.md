@@ -533,6 +533,12 @@ References: [Your First Extension](https://code.visualstudio.com/api/get-started
 11. **User scope never elevates**: sudo would switch to root's user instance.
 12. **Status bar supports only codicons**: custom SVGs are only for view/container
     icons.
+13. **Extension host aborts randomly while debugging**: js-debug enables
+    inspector network tracking (`Network.enable`) on every debug session; an
+    upstream Node race (nodejs/node#64308) then aborts the process with SIGABRT,
+    closing the Extension Development Host. `debug.javascript.enableNetworkView`
+    is therefore set to `false` in `.vscode/settings.json` — remove that
+    override once VS Code bundles a Node with the fix.
 
 ## Appendix: the minimal mental model
 

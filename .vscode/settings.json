@@ -1,0 +1,6 @@
+{
+    // Disable js-debug's network inspection while debugging the extension.
+    // The adapter otherwise sends Network.enable to the extension-host
+    // inspector, which intermittently aborts Node (nodejs/node#64308, SIGABRT).
+    "debug.javascript.enableNetworkView": false
+}

@@ -477,6 +477,12 @@ systemd 版本并选用最接近的支持版本（无 systemd 时用最新支持
     `list-unit-files` 可靠——Installed 视图的差集即为此设。
 11. **user 作用域永不提权**：sudo 会切到 root 的用户实例。
 12. **状态栏只支持 codicon**：自定义 SVG 只能用于视图/容器图标。
+13. **调试时扩展宿主会随机崩溃退出**：js-debug 会在每个调试会话上启用
+    inspector 的网络跟踪（`Network.enable`），触发 Node 上游竞态
+    （nodejs/node#64308），进程被 SIGABRT 终止，表现为 Extension Development
+    Host 窗口自己关闭。因此 `.vscode/settings.json` 中设了
+    `debug.javascript.enableNetworkView: false`——等 VS Code 内置的 Node 修复后
+    可移除该覆盖。
 
 ## 附：最小可运行的心智模型
 

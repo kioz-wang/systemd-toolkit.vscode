@@ -47,8 +47,8 @@
 
 **systemd** 活动栏容器包含三个视图：
 
-- **Target** — 显示当前 host 与 unit 作用域（点击可切换）。**Refresh** 按钮位于
-  此视图，并同时刷新全部三个视图。
+- **Target** — 显示当前 host、unit 作用域与指令数据版本（点击可切换）。**Refresh**
+  按钮位于此视图，并同时刷新全部三个视图。
 - **Loaded** — 当前加载到内存中的 unit（`systemctl list-units`），带**列表/树
   切换**、**显示/隐藏 inactive** 开关与**名称过滤**。两种模式都用图标与颜色显示
   每个 unit 的状态。
@@ -104,7 +104,8 @@ Deploy **不会** start 或 enable 该 unit——那是独立的步骤（`Start`
 
 ### 状态栏
 
-状态栏显示当前目标（`host · scope · vNNN`）；点击它可切换本次会话的 host 或 scope。
+状态栏显示当前目标（`host · scope · vNNN`）；点击它可切换本次会话的 host、scope
+或指令数据版本。
 
 ### 远程（SSH）与作用域（scope）
 
@@ -122,7 +123,9 @@ system 处理）。
 本版本附带 **systemd 258、259、260、261**（每个系列的最新稳定补丁）的指令数据。
 扩展会自动匹配目标机器（遵循 `systemd-toolkit.host`）的 systemd 版本（`systemctl
 --version`），并自动选用**最接近**的指令数据版本，不再询问用户。目标无 systemd 时
-使用最新的支持版本。语言功能始终与目标主机一致；切换主机后会重新探测。
+使用最新的支持版本。语言功能始终与目标主机一致；切换主机后会重新探测。启动后仍可
+从 **Target** 视图、状态栏菜单或 `systemd: Switch Directive Data Version` 命令
+手动切换当前连接使用的版本。
 
 ## 设置
 

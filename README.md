@@ -49,8 +49,8 @@ Toolkit** output channel.
 
 The **systemd** activity-bar container has three views:
 
-- **Target** — the current host and unit scope (click either to switch). The
-  **Refresh** button lives here and refreshes all three views.
+- **Target** — the current host, unit scope and directive-data version (click any
+  to switch). The **Refresh** button lives here and refreshes all three views.
 - **Loaded** — units currently in memory (`systemctl list-units`), with a
   **list/tree toggle**, a **Show/Hide inactive** toggle, and a **name filter**.
   Both modes show each unit's state via icon and colour.
@@ -111,7 +111,7 @@ Log views carry no CodeLens.
 ### Status bar
 
 The status bar shows the current target (`host · scope · vNNN`); click it to
-switch host or scope for the session.
+switch host, scope or directive-data version for the session.
 
 ### Remote (SSH) & scope
 
@@ -131,7 +131,9 @@ of each series). The extension automatically matches the target's systemd
 version (`systemctl --version`, honouring `systemd-toolkit.host`) and uses the
 **closest supported** directive-data version, without prompting. When the target
 has no systemd, the newest supported version is used. Language features always
-reflect the target host; switching hosts re-runs detection.
+reflect the target host; switching hosts re-runs detection. You can still
+override the version for the current connection from the **Target** view, the
+status bar menu, or `systemd: Switch Directive Data Version`.
 
 ## Settings
 

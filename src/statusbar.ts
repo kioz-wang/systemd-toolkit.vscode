@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { host, scope, onHostChanged, onScopeChanged } from './remote';
 import { activeVersion } from './data';
-import { isSystemdAvailable, detectedSystemdVersion } from './version';
+import { isSystemdAvailable, detectedSystemdVersion, manualVersion, onVersionChanged } from './version';
 
 /**
  * A status-bar item summarising the current target (host, scope) and the
@@ -25,6 +25,8 @@ export function registerStatusBar(context: vscode.ExtensionContext): () => void 
         // When the directive data in use does not match the target's actual
         // systemd (including "no systemd at all"), highlight the version so the
         // mismatch is visible rather than silently showing a misleading vNNN.
+        const manual = manualVersion() !== undefined;
+        const origin = manual ? 'manual' : 'nearest';
         let versionText: string;
         let versionDetail: string;
         if (!v) {
@@ -32,19 +34,19 @@ export function registerStatusBar(context: vscode.ExtensionContext): () => void 
             versionDetail = 'no directive data loaded';
         } else if (!available) {
             versionText = `$(warning) v${v}`;
-            versionDetail = `v${v} (nearest — systemd not detected on target)`;
+            versionDetail = `v${v} (${origin} — systemd not detected on target)`;
         } else if (det && det !== v) {
             versionText = `$(warning) v${v}`;
-            versionDetail = `v${v} (nearest — target is v${det})`;
+            versionDetail = `v${v} (${origin} — target is v${det})`;
         } else {
             versionText = `v${v}`;
-            versionDetail = `v${v}`;
+            versionDetail = `v${v} (${origin})`;
         }
 
         // Status-bar text only supports codicons (not custom SVGs), so we keep
         // it plain rather than showing a misleading non-systemd icon.
         item.text = `${h} · ${s} · ${versionText}`;
-        item.tooltip = `systemd target\nHost: ${h}\nScope: ${s}\nDirective data: ${versionDetail}\nClick to switch host / scope`;
+        item.tooltip = `systemd target\nHost: ${h}\nScope: ${s}\nDirective data: ${versionDetail}\nClick to switch host / scope / version`;
     };
 
     refresh();
@@ -52,6 +54,7 @@ export function registerStatusBar(context: vscode.ExtensionContext): () => void 
         item,
         onHostChanged(refresh),
         onScopeChanged(refresh),
+        onVersionChanged(refresh),
         vscode.commands.registerCommand('systemd.statusBarMenu', async () => {
             const pick = await vscode.window.showQuickPick(
                 [
@@ -65,6 +68,11 @@ export function registerStatusBar(context: vscode.ExtensionContext): () => void 
                         description: scope(),
                         action: 'scope' as const,
                     },
+                    {
+                        label: '$(versions) Switch version',
+                        description: `${activeVersion() ?? 'none'}${manualVersion() !== undefined ? ' (manual)' : ' (auto)'}`,
+                        action: 'version' as const,
+                    },
                 ],
                 { placeHolder: 'systemd target' }
             );
@@ -72,7 +80,9 @@ export function registerStatusBar(context: vscode.ExtensionContext): () => void 
                 return;
             }
             await vscode.commands.executeCommand(
-                pick.action === 'host' ? 'systemd.switchHost' : 'systemd.switchScope'
+                pick.action === 'host' ? 'systemd.switchHost'
+                    : pick.action === 'scope' ? 'systemd.switchScope'
+                        : 'systemd.switchVersion'
             );
         })
     );

@@ -1,11 +1,23 @@
+import * as vscode from 'vscode';
 import { systemctl } from './remote';
-import { latestVersion, supportedVersions } from './data';
+import { activeVersion, latestVersion, supportedVersions } from './data';
 
 /** Whether systemd is reachable on the current target. 'unknown' until first detection. */
 export type SystemdAvailability = 'unknown' | 'available' | 'unavailable';
 
 let availability: SystemdAvailability = 'unknown';
 let detectedSystemd: string | undefined;
+
+/**
+ * A version the user picked manually for the current host connection. It wins
+ * over the automatic nearest match and is cleared when the host changes.
+ */
+let sessionVersion: string | undefined;
+
+const versionChanged = new vscode.EventEmitter<void>();
+
+/** Fired when the manual version choice changes. */
+export const onVersionChanged = versionChanged.event;
 
 /** The last detection result: can the target run `systemctl --version`? */
 export function systemdAvailability(): SystemdAvailability {
@@ -20,6 +32,22 @@ export function isSystemdAvailable(): boolean {
 /** The actual systemd version detected on the target, or undefined. */
 export function detectedSystemdVersion(): string | undefined {
     return detectedSystemd;
+}
+
+/** The manually chosen version for this connection, or undefined (automatic). */
+export function manualVersion(): string | undefined {
+    return sessionVersion;
+}
+
+/** Clear the manual choice so the next resolution is automatic (on host switch). */
+export function resetVersionChoice(): void {
+    sessionVersion = undefined;
+}
+
+/** Apply a manual version choice; `undefined` restores automatic selection. */
+export function setManualVersion(version: string | undefined): void {
+    sessionVersion = version;
+    versionChanged.fire();
 }
 
 /**
@@ -63,13 +91,43 @@ export function closestVersion(detected: string | undefined): string | undefined
 }
 
 /**
- * Resolve the directive-data version for the current target: detect the
- * systemd version and use the closest supported one, without prompting.
- * Returns the version key, or undefined when no data is available.
+ * Resolve the directive-data version for the current target: a manual choice
+ * for this connection wins, otherwise the detected systemd version's closest
+ * supported data is used. Returns the version key, or undefined when no data is
+ * available.
  */
 export async function chooseVersion(): Promise<string | undefined> {
     const detected = await detectSystemdVersion();
     detectedSystemd = detected;
     availability = detected !== undefined ? 'available' : 'unavailable';
-    return closestVersion(detected);
+    return sessionVersion ?? closestVersion(detected);
+}
+
+/**
+ * Pick a directive-data version for this connection: `auto` (nearest match) or
+ * one of the supported versions. Used after startup; startup never prompts.
+ */
+export async function switchVersion(): Promise<void> {
+    const current = sessionVersion;
+    const active = activeVersion();
+    const items: vscode.QuickPickItem[] = [
+        {
+            label: 'auto',
+            description: active ? `nearest match (currently v${active})` : 'nearest match',
+            picked: current === undefined,
+        },
+        ...supportedVersions().map((v) => ({
+            label: v,
+            description: 'directive data',
+            picked: v === current,
+        })),
+    ];
+    const pick = await vscode.window.showQuickPick(items, {
+        title: 'systemd: directive data version',
+        placeHolder: current ? `Manual: v${current}` : 'Automatic (nearest to target)',
+    });
+    if (!pick) {
+        return;
+    }
+    setManualVersion(pick.label === 'auto' ? undefined : pick.label);
 }

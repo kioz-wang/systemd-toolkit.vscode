@@ -253,8 +253,9 @@ resolve resource"）。
 
 三个 `TreeDataProvider`，各注册一个视图：
 
-- **TargetProvider**（`systemd.target`）——两个可点击项：当前 host（点它
-  `systemd.switchHost`）、当前 scope（点它 `systemd.switchScope`）。
+- **TargetProvider**（`systemd.target`）——三个可点击项：当前 host（点它
+  `systemd.switchHost`）、当前 scope（点它 `systemd.switchScope`）、当前指令数据
+  版本（点它 `systemd.switchVersion`）。
 - **SystemdUnitsProvider**（`systemd.units`，视图名 Loaded）——`list-units --all`，
   列表/树切换（按 unit 类型分组，空组也显示）、显示/隐藏 inactive、名称过滤。
 - **InstalledUnitsProvider**（`systemd.installed`，默认折叠）——`list-unit-files`
@@ -345,9 +346,9 @@ UnitFileState（enabled/disabled/static/masked/…）。`systemctl status` 退�
 ### 5.10 状态栏（`src/statusbar.ts`）
 
 `StatusBarItem.text` 显示 `host · scope · vNNN`（只用 codicon 兼容的纯文本），
-点击弹 QuickPick 切换 host 或 scope。`onHostChanged`/`onScopeChanged`/版本切换后
-`refresh`。注意状态栏文本**只支持 codicon**，不支持自定义 SVG——所以不放
-`resources/systemd.svg`，只放纯文本。
+点击弹 QuickPick 切换 host、scope 或指令数据版本。`onHostChanged`/
+`onScopeChanged`/`onVersionChanged` 后 `refresh`。注意状态栏文本**只支持
+codicon**，不支持自定义 SVG——所以不放 `resources/systemd.svg`，只放纯文本。
 
 ## 6. 测试方法
 

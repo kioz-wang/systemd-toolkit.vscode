@@ -318,6 +318,12 @@
         "icon": "$(symbol-property)"
       },
       {
+        "command": "systemd.switchVersion",
+        "title": "Switch Directive Data Version",
+        "category": "systemd",
+        "icon": "$(versions)"
+      },
+      {
         "command": "systemd.units.status",
         "title": "Show Unit Status",
         "category": "systemd"

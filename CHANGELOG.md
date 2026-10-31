@@ -5,7 +5,9 @@
 - Directive data version is now resolved **silently**: the host's systemd
   version is probed and the **closest** supported data is used automatically —
   no more version picker at startup. When no systemd is detected, the newest
-  supported data is used.
+  supported data is used. The version can still be switched manually after
+  startup from the **Target** view, the status bar menu, or the
+  `systemd: Switch Directive Data Version` command.
 
 ## 0.2.0 — 2026-09-14
 

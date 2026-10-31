@@ -5,7 +5,8 @@ import * as path from 'path';
 import { systemctl, host, setSessionHost, scope, setSessionScope } from './remote';
 import { runSystemctl, runLogs } from './commands';
 import { newUnitFile } from './unitfile';
-import { systemdAvailability } from './version';
+import { systemdAvailability, switchVersion, manualVersion, onVersionChanged } from './version';
+import { activeVersion } from './data';
 
 /** A clickable item showing the current host (click to switch). */
 class HostItem extends vscode.TreeItem {
@@ -31,6 +32,20 @@ class ScopeItem extends vscode.TreeItem {
     }
 }
 
+/** A clickable item showing (and switching) the directive-data version. */
+class VersionItem extends vscode.TreeItem {
+    constructor(active: string | undefined, manual: boolean) {
+        super(active ?? 'none', vscode.TreeItemCollapsibleState.None);
+        this.description = manual ? 'version (manual)' : 'version';
+        this.contextValue = 'version';
+        this.iconPath = new vscode.ThemeIcon('versions');
+        this.tooltip = manual
+            ? `Directive data manually set to v${active}; click to switch`
+            : 'Directive data matched automatically; click to switch';
+        this.command = { command: 'systemd.switchVersion', title: 'Switch version' };
+    }
+}
+
 /** A hint shown when the local machine has no systemd (e.g. Windows). */
 class SystemdHintItem extends vscode.TreeItem {
     constructor() {
@@ -50,6 +65,11 @@ export class TargetProvider implements vscode.TreeDataProvider<vscode.TreeItem> 
     private _onDidChangeTreeData = new vscode.EventEmitter<void>();
     readonly onDidChangeTreeData = this._onDidChangeTreeData.event;
 
+    constructor() {
+        // A version switch changes the item's label/description.
+        onVersionChanged(() => this.refresh());
+    }
+
     refresh(): void {
         this._onDidChangeTreeData.fire();
     }
@@ -63,7 +83,11 @@ export class TargetProvider implements vscode.TreeDataProvider<vscode.TreeItem> 
         if (host() === '' && systemdAvailability() === 'unavailable') {
             items.push(new SystemdHintItem());
         }
-        items.push(new HostItem(host()), new ScopeItem(scope()));
+        items.push(
+            new HostItem(host()),
+            new ScopeItem(scope()),
+            new VersionItem(activeVersion(), manualVersion() !== undefined)
+        );
         return items;
     }
 }
@@ -599,6 +623,7 @@ export function registerTree(context: vscode.ExtensionContext): { refreshAll: ()
         reg('systemd.installed.clearFilter', clearInstalledFilter),
         reg('systemd.switchHost', () => switchHost(refreshAll)),
         reg('systemd.switchScope', () => switchScope(refreshAll)),
+        reg('systemd.switchVersion', () => void switchVersion()),
         reg('systemd.units.newUnit', (arg) => {
             if (arg instanceof TypeGroup && arg.unitType) {
                 void newUnitFile(arg.unitType);

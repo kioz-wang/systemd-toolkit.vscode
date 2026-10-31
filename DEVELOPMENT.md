@@ -280,8 +280,9 @@ against the **system** instance. The snapshot cache is keyed by `scope:unit`.
 
 Three `TreeDataProvider`s, one view each:
 
-- **TargetProvider** (`systemd.target`) — two clickable items: current host
-  (click → `systemd.switchHost`), current scope (click → `systemd.switchScope`).
+- **TargetProvider** (`systemd.target`) — three clickable items: current host
+  (click → `systemd.switchHost`), current scope (click → `systemd.switchScope`)
+  and current directive-data version (click → `systemd.switchVersion`).
 - **SystemdUnitsProvider** (`systemd.units`, view "Loaded") — `list-units --all`,
   list/tree toggle (grouped by unit type, empty groups shown), show/hide
   inactive, name filter.
@@ -381,9 +382,10 @@ extension shutdown `stopAll`.
 ### 5.10 Status bar (`src/statusbar.ts`)
 
 `StatusBarItem.text` shows `host · scope · vNNN` (plain text, codicon-compatible
-only), click pops a QuickPick to switch host or scope. `onHostChanged`/
-`onScopeChanged`/version changes trigger `refresh`. Note status-bar text only
-supports codicons, not custom SVGs — so no `resources/systemd.svg` here.
+only), click pops a QuickPick to switch host, scope or directive-data version.
+`onHostChanged`/`onScopeChanged`/`onVersionChanged` trigger `refresh`. Note
+status-bar text only supports codicons, not custom SVGs — so no
+`resources/systemd.svg` here.
 
 ## 6. Testing
 

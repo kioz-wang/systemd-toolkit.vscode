@@ -4,7 +4,7 @@ import { SystemdHoverProvider, SystemdDocumentLinkProvider } from './help';
 import { registerCommands } from './commands';
 import { registerLogs } from './logs';
 import { loadManifest, setActiveVersion, clearActiveVersion } from './data';
-import { chooseVersion } from './version';
+import { chooseVersion, onVersionChanged, resetVersionChoice } from './version';
 import { registerTree } from './tree';
 import { registerUnitFile, onUnitsChanged } from './unitfile';
 import { SystemdCodeLensProvider } from './codelens';
@@ -83,8 +83,18 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 
     void apply();
     context.subscriptions.push(
-        // Re-evaluate the version on the new host (detection + closest match).
-        onHostChanged(() => void apply()),
+        // Re-evaluate the version on the new host (detection + closest match);
+        // a manual choice was made for the previous connection only.
+        onHostChanged(() => {
+            resetVersionChoice();
+            void apply();
+        }),
+        // A manual version switch reloads directive data and updates the status
+        // bar. The tree and CodeLens don't depend on the data version.
+        onVersionChanged(() => {
+            void applyDirectiveVersion();
+            refreshStatus();
+        }),
         // Scope change reuses the same version data but flips which units the
         // code lens sees; refresh it (the tree refreshes itself).
         onScopeChanged(() => codeLens.refresh()),

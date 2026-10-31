@@ -1,10 +1,16 @@
 # Changelog
 
+## 0.2.1 — 2026-10-31
+
+- Directive data version is now resolved **silently**: the host's systemd
+  version is probed and the **closest** supported data is used automatically —
+  no more version picker at startup. When no systemd is detected, the newest
+  supported data is used.
+
 ## 0.2.0 — 2026-09-14
 
 - Directive data version now **auto-matches** the target host's systemd
-  version; a picker lets you choose when it can't be detected. The
-  `systemd.versionOverride` setting is removed.
+  version. The `systemd.versionOverride` setting is removed.
 - Settings renamed to the `systemd-toolkit.*` namespace
   (**breaking change** — `systemd.host`, `systemd.scope`, etc. must be updated).
 - Live logs: fixed remote host/scope routing and continuous refresh; log

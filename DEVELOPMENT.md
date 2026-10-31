@@ -498,10 +498,10 @@ The project ships `.vscode/launch.json` (`type: extensionHost` +
    new window (or re-`F5`).
 
 Note: `activate` is async and resolves the directive-data version first — it
-matches the target's systemd version automatically, or prompts you to choose
-when the target has no systemd / an unsupported version. Confirm
+detects the target's systemd version and uses the closest supported data (no
+prompt; the newest supported version when no systemd is detected). Confirm
 `systemd extension activated (data v...)` in the Debug Console (otherwise no
-data was loaded, e.g. you cancelled the picker). Data JSON is `require`-cached,
+data was loaded). Data JSON is `require`-cached,
 so after changing data you must re-`F5` (Reload Window won't re-read).
 
 References: [Your First Extension](https://code.visualstudio.com/api/get-started/your-first-extension),

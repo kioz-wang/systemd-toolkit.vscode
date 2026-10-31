@@ -449,10 +449,10 @@ npm run compile && npm run package
    栈、Debug Console 求值。
 5. 改代码后一般无需重启：新窗口执行 **Developer: Reload Window**（或重新 `F5`）。
 
-注意：本扩展 `activate` 是 async，会先解析指令数据版本——自动匹配目标机器的
-systemd 版本；当目标无 systemd 或版本不受支持时，弹出选择器让你挑选。先在 Debug
-Console 确认有 `systemd extension activated (data v...)` 日志（否则说明未加载
-数据，例如你取消了选择器）。数据 JSON 是 `require` 缓存的，改数据后需重新 `F5`
+注意：本扩展 `activate` 是 async，会先解析指令数据版本——自动探测目标机器的
+systemd 版本并选用最接近的支持版本（无 systemd 时用最新支持版本），不会询问用户。
+先在 Debug Console 确认有 `systemd extension activated (data v...)` 日志（否则
+说明未加载数据）。数据 JSON 是 `require` 缓存的，改数据后需重新 `F5`
 （Reload Window 不会重读）。
 
 官方参考：[Your First Extension](https://code.visualstudio.com/api/get-started/your-first-extension)、

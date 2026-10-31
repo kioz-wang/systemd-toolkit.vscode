@@ -128,11 +128,10 @@ the settings. The panel follows the session; the editor CodeLens follows the
 
 Ships directive data for **systemd 258, 259, 260, 261** (latest stable patch
 of each series). The extension automatically matches the target's systemd
-version (`systemctl --version`, honouring `systemd-toolkit.host`) so language features
-always use the right directive data. If the target has no systemd, or its
-version has no matching data, a picker asks you to choose a version — the choice
-applies to the current host connection only and is re-evaluated when you switch
-hosts.
+version (`systemctl --version`, honouring `systemd-toolkit.host`) and uses the
+**closest supported** directive-data version, without prompting. When the target
+has no systemd, the newest supported version is used. Language features always
+reflect the target host; switching hosts re-runs detection.
 
 ## Settings
 

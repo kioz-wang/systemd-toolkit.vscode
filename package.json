@@ -2,7 +2,7 @@
   "name": "systemd-toolkit",
   "displayName": "systemd Toolkit",
   "description": "Language support for systemd unit, network, and configuration files: syntax highlighting, directive completion, hover documentation, and systemctl integration.",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "publisher": "kiozwang",
   "license": "LGPL-2.1-or-later",
   "repository": {

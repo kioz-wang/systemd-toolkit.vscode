@@ -1,18 +1,11 @@
-import * as vscode from 'vscode';
 import { systemctl } from './remote';
-import { manifestEntry, supportedVersions } from './data';
+import { latestVersion, supportedVersions } from './data';
 
 /** Whether systemd is reachable on the current target. 'unknown' until first detection. */
 export type SystemdAvailability = 'unknown' | 'available' | 'unavailable';
 
 let availability: SystemdAvailability = 'unknown';
 let detectedSystemd: string | undefined;
-
-/**
- * A version the user picked for the current host connection (because auto-match
- * failed). Cleared whenever the host changes, then re-evaluated.
- */
-let sessionVersion: string | undefined;
 
 /** The last detection result: can the target run `systemctl --version`? */
 export function systemdAvailability(): SystemdAvailability {
@@ -27,11 +20,6 @@ export function isSystemdAvailable(): boolean {
 /** The actual systemd version detected on the target, or undefined. */
 export function detectedSystemdVersion(): string | undefined {
     return detectedSystemd;
-}
-
-/** Clear the per-connection version choice (called on host switch). */
-export function resetVersionChoice(): void {
-    sessionVersion = undefined;
 }
 
 /**
@@ -49,48 +37,39 @@ export async function detectSystemdVersion(): Promise<string | undefined> {
 }
 
 /**
- * Prompt the user to choose a directive-data version. Shown when the target has
- * no systemd, or its version has no matching data. Returns the chosen version,
- * or undefined if the user cancels (language features stay disabled).
+ * Pick the supported directive-data version closest to `detected`. Ties favour
+ * the newer version. With no detected version (no systemd on the target), the
+ * newest supported version is used.
  */
-async function promptForVersion(reason: string): Promise<string | undefined> {
+export function closestVersion(detected: string | undefined): string | undefined {
     const versions = supportedVersions();
-    const pick = await vscode.window.showQuickPick(
-        versions.map((v) => ({ label: v, description: 'directive data' })),
-        {
-            title: `systemd: ${reason}`,
-            placeHolder: 'Choose a systemd version for directive data',
+    if (versions.length === 0) {
+        return undefined;
+    }
+    const target = detected ? Number.parseInt(detected, 10) : Number.NaN;
+    if (!Number.isFinite(target)) {
+        return latestVersion();
+    }
+    let best = versions[0];
+    let bestDistance = Math.abs(Number(best) - target);
+    for (const version of versions.slice(1)) {
+        const distance = Math.abs(Number(version) - target);
+        if (distance < bestDistance || (distance === bestDistance && Number(version) > Number(best))) {
+            best = version;
+            bestDistance = distance;
         }
-    );
-    return pick?.label;
+    }
+    return best;
 }
 
 /**
- * Resolve which directive-data version to use:
- *   1. A user choice made for this connection wins (no re-detection).
- *   2. Otherwise match the target's detected systemd version.
- *   3. If detection fails or the version is unsupported, prompt the user.
- * Returns the version key, or undefined when no data should be loaded.
+ * Resolve the directive-data version for the current target: detect the
+ * systemd version and use the closest supported one, without prompting.
+ * Returns the version key, or undefined when no data is available.
  */
 export async function chooseVersion(): Promise<string | undefined> {
-    if (sessionVersion && manifestEntry(sessionVersion)) {
-        return sessionVersion;
-    }
-
     const detected = await detectSystemdVersion();
     detectedSystemd = detected;
     availability = detected !== undefined ? 'available' : 'unavailable';
-
-    if (detected && manifestEntry(detected)) {
-        return detected;
-    }
-
-    const reason = detected
-        ? `systemd v${detected} is not supported`
-        : 'systemd not detected on target';
-    const chosen = await promptForVersion(reason);
-    if (chosen) {
-        sessionVersion = chosen;
-    }
-    return chosen;
+    return closestVersion(detected);
 }

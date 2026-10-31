@@ -4,7 +4,7 @@ import { SystemdHoverProvider, SystemdDocumentLinkProvider } from './help';
 import { registerCommands } from './commands';
 import { registerLogs } from './logs';
 import { loadManifest, setActiveVersion, clearActiveVersion } from './data';
-import { chooseVersion, resetVersionChoice } from './version';
+import { chooseVersion } from './version';
 import { registerTree } from './tree';
 import { registerUnitFile, onUnitsChanged } from './unitfile';
 import { SystemdCodeLensProvider } from './codelens';
@@ -83,12 +83,8 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 
     void apply();
     context.subscriptions.push(
-        // Re-evaluate the version on the new host: clear any per-connection
-        // choice and re-run detection/prompt.
-        onHostChanged(() => {
-            resetVersionChoice();
-            void apply();
-        }),
+        // Re-evaluate the version on the new host (detection + closest match).
+        onHostChanged(() => void apply()),
         // Scope change reuses the same version data but flips which units the
         // code lens sees; refresh it (the tree refreshes itself).
         onScopeChanged(() => codeLens.refresh()),
@@ -96,17 +92,16 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 }
 
 /**
- * Resolve the directive-data version for the current host — matching its
- * systemd version, or prompting the user when that's impossible — and load the
- * data. Clears the data (disabling language features) when no version is
- * resolved.
+ * Resolve the directive-data version for the current host — detecting its
+ * systemd version and using the closest supported data — and load it. Clears
+ * the data (disabling language features) when no version is available.
  */
 async function applyDirectiveVersion(): Promise<void> {
     const version = await chooseVersion();
 
     if (!version) {
         clearActiveVersion();
-        info('systemd: no directive data loaded (no matching version or selection cancelled).');
+        info('systemd: no directive data loaded (no supported version available).');
         return;
     }
 
